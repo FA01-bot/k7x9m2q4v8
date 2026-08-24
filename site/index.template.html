@@ -329,8 +329,8 @@
 
     /*
       橫向 / 電腦寬螢幕：
-      右側仍填滿整個高度，但按鈕不再被硬拉成超高長條。
-      改成置中的 2x2 快捷區 + Instagram，比例比較像卡片控制面板。
+      右側改成窄版工具列，四個聯絡方式垂直一排，
+      IG 放最下方而且只保留圖示。
     */
     @media (orientation:landscape){
       .viewport{
@@ -348,7 +348,7 @@
         max-height:none;
 
         display:grid;
-        grid-template-columns:minmax(0,1fr) clamp(280px,23vw,360px);
+        grid-template-columns:minmax(0,1fr) clamp(92px,8.2vw,122px);
         grid-template-rows:minmax(0,1fr);
 
         border-radius:clamp(16px,2vw,26px);
@@ -375,7 +375,7 @@
       }
 
       .bio{
-        max-width:min(540px,70%);
+        max-width:min(540px,72%);
         font-size:clamp(.68rem,2.6vh,1.1rem);
         line-height:1.48;
       }
@@ -385,157 +385,132 @@
         min-height:0;
         min-width:0;
 
-        display:flex;
-        flex-direction:column;
-        justify-content:center;
-
-        gap:clamp(12px,2vh,18px);
+        display:grid;
+        grid-template-rows:minmax(0,1fr) auto;
+        gap:clamp(7px,1.6vh,12px);
 
         padding:
-          clamp(18px,3vh,32px)
-          clamp(16px,2vw,28px);
+          clamp(8px,1.6vh,14px)
+          clamp(7px,.8vw,11px);
 
         border-left:1px solid rgba(255,255,255,.08);
-
-        background:
-          radial-gradient(circle at 50% 45%, rgba(255,255,255,.035), transparent 52%),
-          linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,0)),
-          var(--panel);
       }
 
       .quick-actions{
         width:100%;
-        height:auto;
+        height:100%;
         min-height:0;
 
         display:grid;
-        grid-template-columns:repeat(2,minmax(0,1fr));
-        grid-template-rows:repeat(2,auto);
+        grid-template-columns:minmax(0,1fr);
+        grid-template-rows:repeat(4,minmax(0,1fr));
 
-        gap:clamp(10px,1.6vw,16px);
+        gap:clamp(6px,1.1vh,10px);
         margin:0;
       }
 
       .quick{
         width:100%;
-        height:auto;
+        height:100%;
         min-height:0;
-        aspect-ratio:1.22 / 1;
 
-        padding:clamp(10px,1.7vh,16px) 6px;
-
+        display:flex;
+        flex-direction:column;
+        align-items:center;
         justify-content:center;
-        gap:clamp(5px,.8vh,8px);
+        gap:clamp(3px,.8vh,6px);
 
-        border-radius:clamp(16px,1.7vw,22px);
-
-        background:
-          linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018));
-
-        border:1px solid rgba(255,255,255,.09);
-
-        box-shadow:
-          inset 0 1px 0 rgba(255,255,255,.025),
-          0 8px 22px rgba(0,0,0,.08);
+        padding:4px 2px;
+        border-radius:clamp(12px,1.2vw,16px);
       }
 
       .quick svg{
-        width:clamp(27px,4.6vh,36px);
-        height:clamp(27px,4.6vh,36px);
+        width:clamp(22px,4.2vh,31px);
+        height:clamp(22px,4.2vh,31px);
       }
 
       .quick-label{
-        font-size:clamp(.62rem,1.65vh,.78rem);
+        font-size:clamp(.50rem,1.45vh,.68rem);
       }
 
       .line-bubble{
-        width:clamp(28px,4.8vh,36px);
-        height:clamp(23px,3.9vh,29px);
+        width:clamp(24px,4.4vh,31px);
+        height:clamp(19px,3.6vh,25px);
       }
 
       .instagram{
         width:100%;
-        min-height:clamp(48px,7.5vh,60px);
-        flex:0 0 auto;
+        min-height:clamp(42px,7.8vh,56px);
+        border-radius:clamp(12px,1.2vw,16px);
+        gap:0;
+      }
 
-        border-radius:clamp(16px,1.7vw,22px);
+      .instagram span{
+        display:none;
+      }
 
-        box-shadow:
-          inset 0 1px 0 rgba(255,255,255,.16),
-          0 10px 24px rgba(183,89,135,.10);
+      .instagram svg{
+        width:clamp(22px,4.2vh,30px);
+        height:clamp(22px,4.2vh,30px);
       }
     }
 
-    /* 寬螢幕桌機：右側不要越拉越寬，維持像控制面板的比例 */
+    /* 超寬桌面也維持窄工具列，不再把右側放大 */
     @media (orientation:landscape) and (min-width:1200px){
       .card{
-        grid-template-columns:minmax(0,1fr) clamp(300px,22vw,370px);
+        grid-template-columns:minmax(0,1fr) clamp(102px,7vw,128px);
       }
 
       .contact-panel{
         padding:
-          clamp(24px,4vh,42px)
-          clamp(20px,2.4vw,34px);
-      }
-
-      .quick-actions{
-        gap:clamp(12px,1.2vw,18px);
-      }
-
-      .quick{
-        aspect-ratio:1.18 / 1;
+          clamp(10px,1.8vh,16px)
+          clamp(8px,.75vw,12px);
       }
     }
 
-    /*
-      很矮的橫向手機：
-      仍然採 2x2，但拿掉 aspect-ratio，避免高度不夠。
-    */
+    /* 很矮的橫向手機：再縮一點，仍維持單欄 */
     @media (orientation:landscape) and (max-height:520px){
       .card{
-        grid-template-columns:minmax(0,1fr) clamp(210px,31vw,280px);
+        grid-template-columns:minmax(0,1fr) clamp(76px,13vw,92px);
       }
 
       .contact-panel{
-        padding:7px 9px;
-        gap:6px;
+        padding:5px 5px;
+        gap:5px;
       }
 
       .quick-actions{
-        gap:6px;
+        gap:4px;
       }
 
       .quick{
-        aspect-ratio:auto;
-        min-height:clamp(46px,18vh,68px);
-        padding:5px 3px;
-        border-radius:12px;
+        padding:2px;
+        border-radius:10px;
       }
 
       .quick-label{
-        font-size:.58rem;
+        display:none;
       }
 
       .quick svg{
-        width:21px;
-        height:21px;
+        width:19px;
+        height:19px;
       }
 
       .line-bubble{
-        width:23px;
-        height:19px;
-        font-size:.37rem;
+        width:21px;
+        height:17px;
+        font-size:.34rem;
       }
 
       .instagram{
-        min-height:34px;
-        font-size:.74rem;
-        border-radius:12px;
+        min-height:31px;
+        border-radius:10px;
       }
 
       .instagram svg{
-        width:18px;
-        height:18px;
+        width:17px;
+        height:17px;
       }
 
       .intro{
@@ -565,24 +540,42 @@
     }
 
 
-    /* 裝置方向切換時的動畫 */
-    @keyframes orientationPhotoIn{
-      from{
-        opacity:.15;
-        transform:scale(1.055);
-        filter:saturate(.82) brightness(.82) blur(2px);
-      }
-      to{
-        opacity:1;
-        transform:scale(1.01);
-        filter:saturate(.88) brightness(.91) contrast(.96) blur(0);
-      }
+
+    /* 旋轉時：舊圖留著，新圖載入完成後才做較長的交叉淡入淡出 */
+    .hero{
+      isolation:isolate;
+    }
+
+    .hero-photo{
+      opacity:0;
+      z-index:0;
+      transition:
+        opacity 1.45s cubic-bezier(.22,.70,.20,1),
+        transform 1.55s cubic-bezier(.22,.70,.20,1),
+        filter 1.45s ease;
+      will-change:opacity,transform,filter;
+    }
+
+    .hero-photo.is-active{
+      opacity:1;
+      z-index:1;
+    }
+
+    .hero-photo.is-waiting{
+      opacity:0;
+      transform:scale(1.035);
+      filter:saturate(.82) brightness(.84) contrast(.94) blur(1.5px);
+    }
+
+    .hero::after,
+    .intro{
+      z-index:3;
     }
 
     @keyframes orientationContentIn{
       from{
-        opacity:0;
-        transform:translateY(10px);
+        opacity:.15;
+        transform:translateY(12px);
       }
       to{
         opacity:1;
@@ -592,12 +585,12 @@
 
     @keyframes orientationPanelIn{
       from{
-        opacity:.25;
-        transform:scale(.985);
+        opacity:.30;
+        transform:translateX(8px);
       }
       to{
         opacity:1;
-        transform:scale(1);
+        transform:translateX(0);
       }
     }
 
@@ -607,30 +600,27 @@
     body.opening-finished .quick,
     body.opening-finished .instagram{
       animation:none;
-      opacity:1;
-    }
-
-    body.opening-finished .hero img{
-      transform:scale(1.01);
-      filter:saturate(.88) brightness(.91) contrast(.96);
     }
 
     body.opening-finished .intro,
     body.opening-finished .quick,
     body.opening-finished .instagram{
+      opacity:1;
       transform:none;
     }
 
-    body.opening-finished .card.orientation-transition .hero img{
-      animation:orientationPhotoIn .62s cubic-bezier(.22,.72,.2,1) both !important;
+    body.opening-finished .card.orientation-loading .hero-photo.is-active{
+      opacity:.82;
+      transform:scale(1.015);
+      filter:saturate(.84) brightness(.86) contrast(.95);
     }
 
     body.opening-finished .card.orientation-transition .intro{
-      animation:orientationContentIn .52s cubic-bezier(.22,.72,.2,1) .08s both !important;
+      animation:orientationContentIn .95s cubic-bezier(.22,.72,.2,1) .18s both !important;
     }
 
     body.opening-finished .card.orientation-transition .contact-panel{
-      animation:orientationPanelIn .55s cubic-bezier(.22,.72,.2,1) .05s both !important;
+      animation:orientationPanelIn 1.00s cubic-bezier(.22,.72,.2,1) .12s both !important;
       transform-origin:center;
     }
 
@@ -720,6 +710,7 @@
       .quick,
       .instagram{
         animation:none!important;
+        transition:none!important;
         opacity:1!important;
         transform:none!important;
         filter:none!important;
@@ -733,7 +724,8 @@
   <div class="viewport">
   <main class="card">
     <section class="hero">
-      <img id="hero-photo" alt="">
+      <img id="hero-photo-a" class="hero-photo is-active" alt="">
+      <img id="hero-photo-b" class="hero-photo" alt="">
       <div class="intro">
         <h1 class="name">__CARD_NAME__</h1>
         <p class="bio">
@@ -791,7 +783,11 @@
     (() => {
       const root = document.documentElement;
       const card = document.querySelector(".card");
-      const photo = document.getElementById("hero-photo");
+
+      const layers = [
+        document.getElementById("hero-photo-a"),
+        document.getElementById("hero-photo-b")
+      ];
 
       const manifest = __IMAGE_MANIFEST_JSON__;
       const buildId = __IMAGE_BUILD_ID_JSON__;
@@ -800,9 +796,12 @@
       const landscapeImages = Array.isArray(manifest.landscape) ? manifest.landscape : [];
 
       const memoryIndex = {portrait:0, landscape:0};
+
+      let activeLayer = 0;
       let lastMode = null;
       let orientationTimer = 0;
       let transitionTimer = 0;
+      let loadGeneration = 0;
 
       const viewportSize = () => {
         const vv = window.visualViewport;
@@ -824,6 +823,7 @@
             ? "portrait"
             : "landscape";
         }
+
         const {width, height} = viewportSize();
         return height >= width ? "portrait" : "landscape";
       };
@@ -835,9 +835,8 @@
       };
 
       /*
-        不再隨機。
-        每一組圖片都依 manifest 的順序 1 → 2 → 3 → 1 循環。
-        build.py 會依檔名自然排序，所以建議用 01.jpg、02.jpg、03.jpg。
+        依檔名順序播放，不隨機。
+        每組各自循環：01 → 02 → 03 → 01……
       */
       const nextSequential = (items, mode) => {
         if (!Array.isArray(items) || items.length === 0) return "";
@@ -876,20 +875,47 @@
 
       const poolFor = (mode) => {
         let pool = mode === "portrait" ? portraitImages : landscapeImages;
+
         if (!pool.length) {
           pool = mode === "portrait" ? landscapeImages : portraitImages;
         }
+
         return pool;
       };
 
       const preload = (path) => {
         if (!path) return;
+
         const img = new Image();
         img.decoding = "async";
         img.src = versionedUrl(path);
+
+        if (typeof img.decode === "function") {
+          img.decode().catch(() => {});
+        }
       };
 
-      const animateOrientation = () => {
+      const loadImage = async (url) => {
+        const probe = new Image();
+        probe.decoding = "async";
+        probe.src = url;
+
+        try {
+          if (typeof probe.decode === "function") {
+            await probe.decode();
+          } else {
+            await new Promise((resolve, reject) => {
+              probe.onload = resolve;
+              probe.onerror = reject;
+            });
+          }
+          return true;
+        } catch (_) {
+          return false;
+        }
+      };
+
+      const startPanelAnimation = () => {
         if (!card || !document.body.classList.contains("opening-finished")) return;
 
         card.classList.remove("orientation-transition");
@@ -899,34 +925,89 @@
         clearTimeout(transitionTimer);
         transitionTimer = window.setTimeout(() => {
           card.classList.remove("orientation-transition");
-        }, 720);
+        }, 1500);
       };
 
-      const showNextForMode = (mode, animate = false) => {
+      const crossfadeTo = async (path, animate = false) => {
+        if (!path) return;
+
+        const generation = ++loadGeneration;
+        const url = versionedUrl(path);
+
+        if (animate && card) {
+          card.classList.add("orientation-loading");
+        }
+
+        // 舊圖不會先消失；先在背景把新圖載完。
+        const loaded = await loadImage(url);
+
+        // 如果使用者又旋轉了一次，舊的載入結果直接丟掉。
+        if (generation !== loadGeneration) return;
+
+        if (card) {
+          card.classList.remove("orientation-loading");
+        }
+
+        if (!loaded) return;
+
+        const oldIndex = activeLayer;
+        const newIndex = oldIndex === 0 ? 1 : 0;
+
+        const oldLayer = layers[oldIndex];
+        const newLayer = layers[newIndex];
+
+        if (!oldLayer || !newLayer) return;
+
+        newLayer.classList.remove("is-active");
+        newLayer.classList.add("is-waiting");
+        newLayer.src = url;
+
+        // 讓瀏覽器先套用等待狀態，再開始 1.45 秒交叉淡化。
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+        if (generation !== loadGeneration) return;
+
+        newLayer.classList.remove("is-waiting");
+        newLayer.classList.add("is-active");
+        oldLayer.classList.remove("is-active");
+
+        activeLayer = newIndex;
+
+        if (animate) {
+          startPanelAnimation();
+        }
+
+        // 等淡出完成後再清掉舊層，避免旋轉過程出現空白。
+        window.setTimeout(() => {
+          if (activeLayer !== oldIndex && !oldLayer.classList.contains("is-active")) {
+            oldLayer.removeAttribute("src");
+          }
+        }, 1650);
+      };
+
+      const showNextForMode = async (mode, animate = false) => {
         const pool = poolFor(mode);
         const next = nextSequential(pool, mode);
 
-        if (!photo || !next) return;
+        if (!next) return;
 
-        photo.src = versionedUrl(next);
+        await crossfadeTo(next, animate);
 
-        // 順序模式可預先載入下一張，因此下一次開啟/旋轉通常會更快。
+        // 預載下一張同方向，以及另一方向的下一張。
         preload(peekSequential(pool, mode));
 
         const otherMode = mode === "portrait" ? "landscape" : "portrait";
         preload(peekSequential(poolFor(otherMode), otherMode));
-
-        if (animate) animateOrientation();
       };
 
-      const applyOrientationIfChanged = (animate = true) => {
+      const applyOrientationIfChanged = () => {
         updateViewport();
-        const mode = currentMode();
 
+        const mode = currentMode();
         if (mode === lastMode) return;
 
         lastMode = mode;
-        showNextForMode(mode, animate);
+        showNextForMode(mode, true);
       };
 
       const scheduleOrientationCheck = () => {
@@ -934,22 +1015,23 @@
 
         clearTimeout(orientationTimer);
         orientationTimer = window.setTimeout(() => {
-          applyOrientationIfChanged(true);
-        }, 100);
+          applyOrientationIfChanged();
+        }, 140);
       };
 
-      // 初次進入：先決定方向，再照該組目前順序顯示。
+      // 初次開啟。
       updateViewport();
       lastMode = currentMode();
       showNextForMode(lastMode, false);
 
-      // 原本的開場動畫結束後，切換成可重複使用的旋轉動畫模式。
       window.setTimeout(() => {
         document.body.classList.add("opening-finished");
-      }, 1150);
+      }, 1200);
 
-      // 各家手機對旋轉事件的支援不完全一致，所以多路監聽，
-      // 但真正換圖只會在 portrait/landscape 確實改變時執行一次。
+      /*
+        不同手機/瀏覽器旋轉時會觸發不同事件。
+        多路監聽，但只有方向真的改變才換一次照片。
+      */
       window.addEventListener("orientationchange", scheduleOrientationCheck, {passive:true});
       window.addEventListener("resize", scheduleOrientationCheck, {passive:true});
 
@@ -965,7 +1047,8 @@
         }
       }
 
-      if (window.screen && window.screen.orientation &&
+      if (window.screen &&
+          window.screen.orientation &&
           window.screen.orientation.addEventListener) {
         window.screen.orientation.addEventListener("change", scheduleOrientationCheck);
       }
@@ -975,7 +1058,6 @@
         window.visualViewport.addEventListener("scroll", updateViewport, {passive:true});
       }
 
-      // 從瀏覽器返回快取頁面時也重新校正方向。
       window.addEventListener("pageshow", (event) => {
         updateViewport();
         if (event.persisted) scheduleOrientationCheck();
