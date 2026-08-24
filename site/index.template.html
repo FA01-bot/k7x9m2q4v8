@@ -563,15 +563,6 @@
       isolation:isolate;
     }
 
-    @keyframes slowPhotoZoom{
-      from{
-        transform:scale(1.01);
-      }
-      to{
-        transform:scale(1.075);
-      }
-    }
-
     .hero-photo{
       opacity:0;
       z-index:0;
@@ -593,12 +584,11 @@
     }
 
     /*
-      用 animation 而不是 transform transition。
-      這可避免之前開場 heroReveal animation 覆蓋 transform，
-      導致看不到慢慢放大的問題。
+      放大不再用「從 A 倍數到 B 倍數」的固定 keyframe。
+      transform 由 JavaScript 依「速度 + 漸慢」逐幀計算。
     */
     .hero-photo.is-active.is-zooming{
-      animation:slowPhotoZoom 5.6s cubic-bezier(.18,.66,.28,1) forwards;
+      will-change:transform,opacity,filter;
     }
 
     .hero-photo.is-waiting{
@@ -766,13 +756,9 @@
         filter:none!important;
       }
 
-      /* 使用者明確要求照片仍保留柔和淡入與慢速縮放 */
+      /* 照片仍保留柔和淡入；縮放由 JavaScript 控制。 */
       .hero-photo{
         transition:opacity 2.05s ease!important;
-      }
-
-      .hero-photo.is-active.is-zooming{
-        animation:slowPhotoZoom 5.6s linear forwards!important;
       }
     }
 
@@ -855,11 +841,11 @@
       const landscapeImages = Array.isArray(manifest.landscape) ? manifest.landscape : [];
 
       /*
-        每張照片約 5.6 秒後開始換下一張。
+        每張照片依設定速度放大約 5 秒後開始換下一張。
         如果下一張網路還沒載完，舊照片會繼續留著，
         等新照片 decode 完才真正交叉淡化。
       */
-      const SLIDE_INTERVAL = 5600;
+      const ZOOM_DURATION = 5000;
       const CROSSFADE_MS = 2050;
 
       const memoryIndex = {portrait:0, landscape:0};
@@ -871,6 +857,17 @@
       let slideshowTimer = 0;
       let loadGeneration = 0;
       let switching = false;
+
+      let zoomFrame = 0;
+      let zoomGeneration = 0;
+
+      /*
+        這裡控制的是「速度」，不是最後要放大到幾倍。
+        初始速度約每秒增加 3.5% 的 scale，
+        然後在 5 秒內平滑減速到接近 0。
+      */
+      const INITIAL_ZOOM_SPEED = 0.035; // scale / second
+      const BASE_SCALE = 1.01;
 
       const viewportSize = () => {
         const vv = window.visualViewport;
@@ -992,16 +989,70 @@
         slideshowTimer = 0;
       };
 
-      const scheduleSlideshow = () => {
-        clearSlideshow();
+      const stopZoom = () => {
+        zoomGeneration += 1;
+        if (zoomFrame) {
+          cancelAnimationFrame(zoomFrame);
+          zoomFrame = 0;
+        }
+      };
 
-        if (document.hidden) return;
+      /*
+        速度式慢放大：
+        v(t) = INITIAL_ZOOM_SPEED × (1 - t/T)^2
 
-        slideshowTimer = window.setTimeout(() => {
-          if (!switching && lastMode) {
-            showNextForMode(lastMode, false);
+        一開始放大速度比較明顯，之後逐漸變慢。
+        沒有設定「一定要放到 1.075x」之類的終點；
+        最後尺寸是由速度曲線和 5 秒時間自然積分出來。
+      */
+      const startRateBasedZoom = (layer) => {
+        if (!layer) return;
+
+        stopZoom();
+
+        const myGeneration = ++zoomGeneration;
+        const startedAt = performance.now();
+        let lastAt = startedAt;
+        let scale = BASE_SCALE;
+
+        layer.style.transform = `scale(${scale})`;
+        layer.classList.add("is-zooming");
+
+        const frame = (now) => {
+          if (
+            myGeneration !== zoomGeneration ||
+            !layer.classList.contains("is-active")
+          ) {
+            return;
           }
-        }, SLIDE_INTERVAL);
+
+          const elapsed = Math.min(now - startedAt, ZOOM_DURATION);
+          const progress = Math.min(1, elapsed / ZOOM_DURATION);
+          const dt = Math.max(0, (now - lastAt) / 1000);
+          lastAt = now;
+
+          // quadratic ease-out of velocity: 快 -> 慢 -> 幾乎停止
+          const speed = INITIAL_ZOOM_SPEED * Math.pow(1 - progress, 2);
+          scale += speed * dt;
+
+          layer.style.transform = `scale(${scale})`;
+
+          if (elapsed < ZOOM_DURATION) {
+            zoomFrame = requestAnimationFrame(frame);
+          } else {
+            zoomFrame = 0;
+
+            /*
+              放大 5 秒後才開始換下一張。
+              如果網路慢，新圖沒載完，舊圖會維持目前尺寸等候。
+            */
+            if (!switching && lastMode && !document.hidden) {
+              showNextForMode(lastMode, false);
+            }
+          }
+        };
+
+        zoomFrame = requestAnimationFrame(frame);
       };
 
       const startOrientationAnimation = () => {
@@ -1018,17 +1069,7 @@
       };
 
       const startZoom = (layer) => {
-        if (!layer) return;
-
-        // 強制重新啟動 slowPhotoZoom，確保每一張都從 1.01x 開始。
-        layer.classList.remove("is-zooming");
-        void layer.offsetWidth;
-
-        requestAnimationFrame(() => {
-          if (layer.classList.contains("is-active")) {
-            layer.classList.add("is-zooming");
-          }
-        });
+        startRateBasedZoom(layer);
       };
 
       const crossfadeTo = async (path, orientationChange = false) => {
@@ -1036,6 +1077,12 @@
 
         clearSlideshow();
         switching = true;
+
+        /*
+          切換開始時先停止舊圖的逐幀縮放。
+          它會維持「此刻」的大小淡出，不會突然縮回去。
+        */
+        stopZoom();
 
         const generation = ++loadGeneration;
         const url = versionedUrl(path);
@@ -1061,7 +1108,6 @@
 
         if (!loaded) {
           switching = false;
-          scheduleSlideshow();
           return false;
         }
 
@@ -1073,12 +1119,11 @@
 
         if (!oldLayer || !newLayer) {
           switching = false;
-          scheduleSlideshow();
           return false;
         }
 
         newLayer.classList.remove("is-active", "is-zooming", "is-outgoing");
-        newLayer.style.transform = "";
+        newLayer.style.transform = `scale(${BASE_SCALE})`;
         newLayer.classList.add("is-waiting");
         newLayer.src = url;
 
@@ -1147,7 +1192,6 @@
         }, CROSSFADE_MS + 260);
 
         switching = false;
-        scheduleSlideshow();
         return true;
       };
 
@@ -1156,7 +1200,6 @@
         const next = nextSequential(pool, mode);
 
         if (!next) {
-          scheduleSlideshow();
           return;
         }
 
@@ -1245,7 +1288,11 @@
           clearSlideshow();
         } else {
           updateViewport();
-          scheduleSlideshow();
+
+          const active = layers[activeLayer];
+          if (active && active.classList.contains("is-active")) {
+            startRateBasedZoom(active);
+          }
         }
       });
 
@@ -1254,7 +1301,11 @@
 
         if (event.persisted) {
           scheduleOrientationCheck();
-          scheduleSlideshow();
+
+          const active = layers[activeLayer];
+          if (active && active.classList.contains("is-active")) {
+            startRateBasedZoom(active);
+          }
         }
       });
     })();
