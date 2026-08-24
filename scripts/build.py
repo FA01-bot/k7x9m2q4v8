@@ -5,7 +5,7 @@ import qrcode
 
 required = [
     "CARD_PATH","CARD_NAME","CARD_PHONE","CARD_EMAIL",
-    "CARD_IG_URL","CARD_LINE_URL","CARD_DISCORD_URL",
+    "CARD_IG_URL","CARD_LINE_URL","CARD_DISCORD_URL","CARD_LINE_ID",
 ]
 
 missing = [k for k in required if not os.environ.get(k)]
@@ -130,6 +130,7 @@ vals = {
     "__CARD_IG_URL__": html.escape(os.environ["CARD_IG_URL"], quote=True),
     "__CARD_LINE_URL__": html.escape(os.environ["CARD_LINE_URL"], quote=True),
     "__CARD_DISCORD_URL__": html.escape(os.environ["CARD_DISCORD_URL"], quote=True),
+    "__CARD_LINE_ID__": html.escape(os.environ["CARD_LINE_ID"], quote=True),
 }
 
 page = (site / "index.template.html").read_text(encoding="utf-8")
