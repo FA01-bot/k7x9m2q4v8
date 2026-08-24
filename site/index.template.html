@@ -609,6 +609,17 @@
       animation:none!important;
     }
 
+    /*
+      舊照片淡出時保持「當下已經放大的尺寸」，
+      不會在切換前突然跳回 1.01x。
+      實際 transform 由 JS 在淡出瞬間凍結。
+    */
+    .hero-photo.is-outgoing{
+      opacity:0;
+      z-index:0;
+      animation:none!important;
+    }
+
     /* 圖片 -> 漸層 -> 文字 */
     .hero::after{
       z-index:2;
@@ -1066,7 +1077,8 @@
           return false;
         }
 
-        newLayer.classList.remove("is-active", "is-zooming");
+        newLayer.classList.remove("is-active", "is-zooming", "is-outgoing");
+        newLayer.style.transform = "";
         newLayer.classList.add("is-waiting");
         newLayer.src = url;
 
@@ -1101,8 +1113,20 @@
         void newLayer.offsetWidth;
 
         requestAnimationFrame(() => {
-          newLayer.classList.add("is-active");
+          /*
+            先把舊圖此刻的 transform 讀出來並凍結。
+            之前會「卡一下」就是因為移除 is-zooming 後，
+            transform 立刻從放大的值跳回 scale(1.01)。
+          */
+          const frozenTransform = getComputedStyle(oldLayer).transform;
+          if (frozenTransform && frozenTransform !== "none") {
+            oldLayer.style.transform = frozenTransform;
+          }
+
           oldLayer.classList.remove("is-active", "is-zooming");
+          oldLayer.classList.add("is-outgoing");
+
+          newLayer.classList.add("is-active");
           activeLayer = newIndex;
           startZoom(newLayer);
         });
@@ -1116,6 +1140,8 @@
             activeLayer !== oldIndex &&
             !oldLayer.classList.contains("is-active")
           ) {
+            oldLayer.classList.remove("is-outgoing", "is-zooming");
+            oldLayer.style.transform = "";
             oldLayer.removeAttribute("src");
           }
         }, CROSSFADE_MS + 260);
