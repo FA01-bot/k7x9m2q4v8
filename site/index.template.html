@@ -1514,6 +1514,14 @@
     .device-mobile .hero-mobile-help{
       position:absolute;
       z-index:6;
+
+      /*
+        初始先不顯示。JS 會在首屏繪製前同步量測 bio / 提示框，
+        決定右下或右上，再加 help-position-ready 顯示。
+        這樣不會看到「先右下、再閃到右上」。
+      */
+      visibility:hidden;
+      opacity:0;
       right:clamp(12px,3.4vw,19px);
       bottom:clamp(14px,2.4vh,22px);
 
@@ -1535,9 +1543,24 @@
         位置切換時不要突然跳，讓右下 -> 右上更自然。
       */
       transition:
+        opacity .18s ease;
+    }
+
+    .device-mobile .hero-mobile-help.help-position-ready{
+      visibility:visible;
+      opacity:1;
+    }
+
+    /*
+      初次定位完成後，如果之後因旋轉/字型變化需要換位置，
+      才允許做平滑的位置動畫。
+    */
+    .device-mobile .hero-mobile-help.help-position-ready.help-position-animate{
+      transition:
         top .28s cubic-bezier(.22,.78,.24,1),
         bottom .28s cubic-bezier(.22,.78,.24,1),
-        transform .28s cubic-bezier(.22,.78,.24,1);
+        transform .28s cubic-bezier(.22,.78,.24,1),
+        opacity .18s ease;
     }
 
     /*
@@ -2126,6 +2149,12 @@
       let viewerOpen = false;
       let playbackPaused = false;
 
+      /*
+        當前照片真正「播放中」的累積時間。
+        暫停、進全螢幕都不增加；恢復後從原本秒數繼續。
+      */
+      let currentPhotoElapsedMs = 0;
+
       const INITIAL_ZOOM_SPEED = 0.035;
       const BASE_SCALE = 1.01;
 
@@ -2140,7 +2169,11 @@
         };
       };
 
-      const updateHelpPosition = () => {
+      let helpPositionInitialized = false;
+
+      const updateHelpPosition = ({
+        animate = true
+      } = {}) => {
         if (
           !isMobileDevice() ||
           !heroHelp ||
@@ -2151,22 +2184,37 @@
         }
 
         /*
-          橫向手機一律靠右上，避免和底部姓名/介紹區搶位置。
+          先暫時取消位置動畫，做同步 layout measurement。
+          首次執行會在 parser script 執行期間完成，正常情況下
+          瀏覽器還沒畫出第一幀，所以使用者不會看到位置跳動。
         */
-        if (currentMode() === "landscape") {
-          heroHelp.classList.add("help-top-right");
-          return;
-        }
+        heroHelp.classList.remove(
+          "help-position-animate"
+        );
 
-        /*
-          直向先試右下角。若控制區跟 bio 重疊，或兩者距離
-          小於 12px，就移到右上角。
-        */
-        heroHelp.classList.remove("help-top-right");
+        const mode = currentMode();
 
-        requestAnimationFrame(() => {
-          const helpRect = heroHelp.getBoundingClientRect();
-          const bioRect = bio.getBoundingClientRect();
+        if (mode === "landscape") {
+          heroHelp.classList.add(
+            "help-top-right"
+          );
+        } else {
+          /*
+            直向先用右下角計算實際矩形。
+          */
+          heroHelp.classList.remove(
+            "help-top-right"
+          );
+
+          /*
+            getBoundingClientRect() 會強制完成當下 layout，
+            因此不需要先 requestAnimationFrame 再量測。
+          */
+          const helpRect =
+            heroHelp.getBoundingClientRect();
+
+          const bioRect =
+            bio.getBoundingClientRect();
 
           const horizontallyOverlaps =
             helpRect.left < bioRect.right + 8 &&
@@ -2176,10 +2224,45 @@
             helpRect.top < bioRect.bottom + 12 &&
             helpRect.bottom > bioRect.top - 12;
 
-          if (horizontallyOverlaps && verticallyTooClose) {
-            heroHelp.classList.add("help-top-right");
+          if (
+            horizontallyOverlaps &&
+            verticallyTooClose
+          ) {
+            heroHelp.classList.add(
+              "help-top-right"
+            );
           }
-        });
+        }
+
+        /*
+          位置決定後才顯示。
+        */
+        heroHelp.classList.add(
+          "help-position-ready"
+        );
+
+        if (
+          helpPositionInitialized &&
+          animate
+        ) {
+          /*
+            下一 frame 才重新開位置 transition，
+            避免本次 class 切換本身被動畫到。
+          */
+          requestAnimationFrame(() => {
+            heroHelp.classList.add(
+              "help-position-animate"
+            );
+          });
+        } else {
+          helpPositionInitialized = true;
+
+          requestAnimationFrame(() => {
+            heroHelp.classList.add(
+              "help-position-animate"
+            );
+          });
+        }
       };
 
       const updateViewport = () => {
@@ -2187,7 +2270,9 @@
         root.style.setProperty("--vwpx", width + "px");
         root.style.setProperty("--vhpx", height + "px");
 
-        requestAnimationFrame(updateHelpPosition);
+        updateHelpPosition({
+          animate:helpPositionInitialized
+        });
       };
 
       const currentMode = () => {
@@ -2367,8 +2452,40 @@
         }
       };
 
-      const startRateBasedZoom = (layer, preserveScale = false) => {
-        if (!layer || viewerOpen || playbackPaused) return;
+      const startRateBasedZoom = (
+        layer,
+        preserveScale = false
+      ) => {
+        if (
+          !layer ||
+          viewerOpen ||
+          playbackPaused
+        ) {
+          return;
+        }
+
+        /*
+          如果已經播滿 5 秒，不再重新啟動一個新的 5 秒週期。
+          這就是避免反覆暫停/播放讓照片無限放大的關鍵。
+        */
+        if (
+          currentPhotoElapsedMs >=
+          ZOOM_DURATION
+        ) {
+          if (
+            !switching &&
+            lastMode &&
+            !document.hidden
+          ) {
+            showNextForMode(
+              lastMode,
+              false,
+              1
+            );
+          }
+
+          return;
+        }
 
         const startingScale =
           preserveScale
@@ -2377,38 +2494,88 @@
 
         stopZoom();
 
-        const myGeneration = ++zoomGeneration;
-        const startedAt = performance.now();
+        const myGeneration =
+          ++zoomGeneration;
 
-        let lastAt = startedAt;
-        let scale = startingScale;
+        let lastAt =
+          performance.now();
 
-        layer.style.transform = `scale(${scale})`;
-        layer.classList.add("is-zooming");
+        let scale =
+          startingScale;
+
+        layer.style.transform =
+          `scale(${scale})`;
+
+        layer.classList.add(
+          "is-zooming"
+        );
 
         const frame = (now) => {
           if (
-            myGeneration !== zoomGeneration ||
-            !layer.classList.contains("is-active") ||
-            viewerOpen
+            myGeneration !==
+              zoomGeneration ||
+            !layer.classList.contains(
+              "is-active"
+            ) ||
+            viewerOpen ||
+            playbackPaused
           ) {
             return;
           }
 
-          const elapsed = Math.min(now - startedAt, ZOOM_DURATION);
-          const progress = Math.min(1, elapsed / ZOOM_DURATION);
-          const dt = Math.max(0, (now - lastAt) / 1000);
+          const dtMs =
+            Math.max(
+              0,
+              Math.min(
+                100,
+                now - lastAt
+              )
+            );
 
           lastAt = now;
 
+          /*
+            累加的是「真正播放中的時間」，不是每次 resume
+            都從 0 開始的局部 elapsed。
+          */
+          currentPhotoElapsedMs =
+            Math.min(
+              ZOOM_DURATION,
+              currentPhotoElapsedMs +
+                dtMs
+            );
+
+          const progress =
+            Math.min(
+              1,
+              currentPhotoElapsedMs /
+                ZOOM_DURATION
+            );
+
+          const dt =
+            dtMs / 1000;
+
           const speed =
-            INITIAL_ZOOM_SPEED * Math.pow(1 - progress, 2);
+            INITIAL_ZOOM_SPEED *
+            Math.pow(
+              1 - progress,
+              2
+            );
 
-          scale += speed * dt;
-          layer.style.transform = `scale(${scale})`;
+          scale +=
+            speed * dt;
 
-          if (elapsed < ZOOM_DURATION) {
-            zoomFrame = requestAnimationFrame(frame);
+          layer.style.transform =
+            `scale(${scale})`;
+
+          if (
+            currentPhotoElapsedMs <
+            ZOOM_DURATION
+          ) {
+            zoomFrame =
+              requestAnimationFrame(
+                frame
+              );
           } else {
             zoomFrame = 0;
 
@@ -2419,12 +2586,17 @@
               lastMode &&
               !document.hidden
             ) {
-              showNextForMode(lastMode, false, 1);
+              showNextForMode(
+                lastMode,
+                false,
+                1
+              );
             }
           }
         };
 
-        zoomFrame = requestAnimationFrame(frame);
+        zoomFrame =
+          requestAnimationFrame(frame);
       };
 
       const startOrientationAnimation = () => {
@@ -2574,6 +2746,11 @@
 
           newLayer.classList.add("is-active");
           activeLayer = newIndex;
+
+          /*
+            真正換到新照片才開始新的 5 秒總播放時間。
+          */
+          currentPhotoElapsedMs = 0;
 
           if (viewerOpen) {
             syncViewerToActive();
@@ -2827,7 +3004,6 @@
       updateViewport();
       lastMode = currentMode();
       showNextForMode(lastMode, false, 1);
-      requestAnimationFrame(updateHelpPosition);
 
       window.setTimeout(() => {
         document.body.classList.add(
@@ -2959,16 +3135,21 @@
         );
       };
 
-      const setPlaybackPaused = (paused) => {
-        playbackPaused = Boolean(paused);
+      const setPlaybackPaused = (
+        paused
+      ) => {
+        playbackPaused =
+          Boolean(paused);
+
         updatePlaybackButton();
 
-        const active = layers[activeLayer];
+        const active =
+          layers[activeLayer];
 
         if (playbackPaused) {
           /*
-            stopZoom 只停止 requestAnimationFrame，
-            不清掉 inline transform，所以照片會停在當下放大位置。
+            只停止動畫，不重設 currentPhotoElapsedMs。
+            例如已播放 3.2 秒，暫停後仍記住 3.2 秒。
           */
           clearSlideshow();
           stopZoom();
@@ -2977,15 +3158,21 @@
 
         if (
           active &&
-          active.classList.contains("is-active") &&
+          active.classList.contains(
+            "is-active"
+          ) &&
           !viewerOpen &&
           !document.hidden
         ) {
           /*
-            preserveScale=true：
-            從暫停時的比例繼續，不會突然縮回 1.01。
+            繼續使用當前 scale + 當前累積秒數。
+            如果只剩 1.8 秒，就只會再播 1.8 秒，
+            絕對不會重新得到一個完整 5 秒。
           */
-          startRateBasedZoom(active, true);
+          startRateBasedZoom(
+            active,
+            true
+          );
         }
       };
 
