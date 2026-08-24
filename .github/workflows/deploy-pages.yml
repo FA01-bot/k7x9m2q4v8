@@ -36,6 +36,7 @@ jobs:
           CARD_IG_URL: ${{ secrets.CARD_IG_URL }}
           CARD_LINE_URL: ${{ secrets.CARD_LINE_URL }}
           CARD_DISCORD_URL: ${{ secrets.CARD_DISCORD_URL }}
+          CARD_LINE_ID: ${{ secrets.CARD_LINE_ID }}
         run: python scripts/build.py
 
       - name: Upload Pages artifact
