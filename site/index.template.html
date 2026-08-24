@@ -117,10 +117,10 @@
       background:
         linear-gradient(
           180deg,
-          rgba(20,24,38,.02) 0%,
-          rgba(20,24,38,.06) 35%,
-          rgba(20,24,38,.22) 66%,
-          rgba(28,32,45,.64) 100%
+          rgba(20,24,38,.01) 0%,
+          rgba(20,24,38,.035) 35%,
+          rgba(20,24,38,.12) 66%,
+          rgba(28,32,45,.46) 100%
         ),
         linear-gradient(90deg,rgba(20,24,38,.10),transparent 58%);
       pointer-events:none;
@@ -551,14 +551,25 @@
 
 
     /*
-      圖片層：
-      - 漸層仍然只蓋在圖片上
-      - 文字位於漸層上方
-      - 每張圖片約 5 秒慢慢放大
-      - 下一張載入完成後才做長一點的交叉淡化
+      圖片層次固定為：
+      圖片 -> 灰色漸層 -> 文字
+
+      每張圖片：
+      1. 先完整載入
+      2. 交叉淡入約 2 秒
+      3. 同時做約 5.6 秒的緩慢放大
     */
     .hero{
       isolation:isolate;
+    }
+
+    @keyframes slowPhotoZoom{
+      from{
+        transform:scale(1.01);
+      }
+      to{
+        transform:scale(1.075);
+      }
     }
 
     .hero-photo{
@@ -568,11 +579,12 @@
       filter:saturate(.88) brightness(.91) contrast(.96);
 
       transition:
-        opacity 1.65s cubic-bezier(.22,.70,.20,1),
-        filter 1.65s ease;
+        opacity 2.05s cubic-bezier(.22,.70,.20,1),
+        filter 1.7s ease;
 
       will-change:opacity,transform,filter;
       backface-visibility:hidden;
+      transform-origin:center center;
     }
 
     .hero-photo.is-active{
@@ -581,15 +593,12 @@
     }
 
     /*
-      這個 class 在新圖片真正載完後才加入。
-      transform 用約 5.4 秒慢慢放大，形成很輕的 Ken Burns 效果。
+      用 animation 而不是 transform transition。
+      這可避免之前開場 heroReveal animation 覆蓋 transform，
+      導致看不到慢慢放大的問題。
     */
     .hero-photo.is-active.is-zooming{
-      transform:scale(1.075);
-      transition:
-        opacity 1.65s cubic-bezier(.22,.70,.20,1),
-        transform 5.4s cubic-bezier(.16,.68,.28,1),
-        filter 1.65s ease;
+      animation:slowPhotoZoom 5.6s cubic-bezier(.18,.66,.28,1) forwards;
     }
 
     .hero-photo.is-waiting{
@@ -597,6 +606,7 @@
       z-index:0;
       transform:scale(1.01);
       filter:saturate(.84) brightness(.86) contrast(.95) blur(1px);
+      animation:none!important;
     }
 
     /* 圖片 -> 漸層 -> 文字 */
@@ -644,16 +654,16 @@
       舊圖片只稍微變柔，不會先消失。
     */
     body.opening-finished .card.orientation-loading .hero-photo.is-active{
-      opacity:.88;
-      filter:saturate(.85) brightness(.88) contrast(.95);
+      opacity:.96;
+      filter:saturate(.87) brightness(.90) contrast(.96);
     }
 
     body.opening-finished .card.orientation-transition .intro{
-      animation:orientationContentIn 1.15s cubic-bezier(.22,.72,.2,1) .20s both !important;
+      animation:orientationContentIn 1.35s cubic-bezier(.18,.70,.20,1) .22s both !important;
     }
 
     body.opening-finished .card.orientation-transition .contact-panel{
-      animation:orientationPanelIn 1.20s cubic-bezier(.22,.72,.2,1) .15s both !important;
+      animation:orientationPanelIn 1.40s cubic-bezier(.18,.70,.20,1) .18s both !important;
       transform-origin:center;
     }
 
@@ -712,9 +722,6 @@
       transform-origin:center center;
     }
 
-    .hero img{
-      animation:heroReveal 1.05s cubic-bezier(.22,.72,.2,1) both;
-    }
 
     .intro{
       opacity:0;
@@ -738,7 +745,6 @@
 
     @media (prefers-reduced-motion:reduce){
       .card,
-      .hero img,
       .intro,
       .quick,
       .instagram{
@@ -747,6 +753,15 @@
         opacity:1!important;
         transform:none!important;
         filter:none!important;
+      }
+
+      /* 使用者明確要求照片仍保留柔和淡入與慢速縮放 */
+      .hero-photo{
+        transition:opacity 2.05s ease!important;
+      }
+
+      .hero-photo.is-active.is-zooming{
+        animation:slowPhotoZoom 5.6s linear forwards!important;
       }
     }
 
@@ -829,12 +844,12 @@
       const landscapeImages = Array.isArray(manifest.landscape) ? manifest.landscape : [];
 
       /*
-        每張照片約 5 秒後開始換下一張。
+        每張照片約 5.6 秒後開始換下一張。
         如果下一張網路還沒載完，舊照片會繼續留著，
         等新照片 decode 完才真正交叉淡化。
       */
-      const SLIDE_INTERVAL = 5200;
-      const CROSSFADE_MS = 1650;
+      const SLIDE_INTERVAL = 5600;
+      const CROSSFADE_MS = 2050;
 
       const memoryIndex = {portrait:0, landscape:0};
 
@@ -994,18 +1009,14 @@
       const startZoom = (layer) => {
         if (!layer) return;
 
+        // 強制重新啟動 slowPhotoZoom，確保每一張都從 1.01x 開始。
         layer.classList.remove("is-zooming");
+        void layer.offsetWidth;
 
-        /*
-          先讓圖片以 scale(1.01) 畫一個 frame，
-          再加 is-zooming，瀏覽器才會真的跑 5.4 秒放大。
-        */
         requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (layer.classList.contains("is-active")) {
-              layer.classList.add("is-zooming");
-            }
-          });
+          if (layer.classList.contains("is-active")) {
+            layer.classList.add("is-zooming");
+          }
         });
       };
 
@@ -1078,18 +1089,23 @@
           requestAnimationFrame(() => requestAnimationFrame(resolve))
         );
 
-        newLayer.classList.remove("is-waiting");
-        newLayer.classList.add("is-active");
-
-        oldLayer.classList.remove("is-active", "is-zooming");
-
-        activeLayer = newIndex;
-
-        startZoom(newLayer);
-
         if (orientationChange) {
           startOrientationAnimation();
         }
+
+        /*
+          先確保新層還是透明，再於下一 frame 切成 active。
+          這樣旋轉時一定看得到約 2 秒的交叉淡入淡出。
+        */
+        newLayer.classList.remove("is-waiting");
+        void newLayer.offsetWidth;
+
+        requestAnimationFrame(() => {
+          newLayer.classList.add("is-active");
+          oldLayer.classList.remove("is-active", "is-zooming");
+          activeLayer = newIndex;
+          startZoom(newLayer);
+        });
 
         /*
           交叉淡化結束後才清掉舊圖。
@@ -1102,7 +1118,7 @@
           ) {
             oldLayer.removeAttribute("src");
           }
-        }, CROSSFADE_MS + 180);
+        }, CROSSFADE_MS + 260);
 
         switching = false;
         scheduleSlideshow();
