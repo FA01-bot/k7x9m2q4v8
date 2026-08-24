@@ -1505,6 +1505,7 @@
 
     /* ---------------------------------------------------------------
        手機照片操作提示 / 播放控制
+       預設右下角；若與 bio 區域太近，JS 自動切到右上角。
        --------------------------------------------------------------- */
     .hero-mobile-help{
       display:none;
@@ -1513,15 +1514,15 @@
     .device-mobile .hero-mobile-help{
       position:absolute;
       z-index:6;
-      right:clamp(14px,4vw,22px);
-      bottom:clamp(16px,2.7vh,26px);
+      right:clamp(12px,3.4vw,19px);
+      bottom:clamp(14px,2.4vh,22px);
 
       display:flex;
       align-items:center;
       justify-content:flex-end;
-      gap:9px;
+      gap:7px;
 
-      max-width:min(48%,190px);
+      max-width:min(42%,168px);
 
       color:rgba(255,255,255,.78);
       text-shadow:
@@ -1529,20 +1530,37 @@
         0 0 2px rgba(0,0,0,.38);
 
       pointer-events:auto;
+
+      /*
+        位置切換時不要突然跳，讓右下 -> 右上更自然。
+      */
+      transition:
+        top .28s cubic-bezier(.22,.78,.24,1),
+        bottom .28s cubic-bezier(.22,.78,.24,1),
+        transform .28s cubic-bezier(.22,.78,.24,1);
+    }
+
+    /*
+      當 JS 判定右下角會碰到 bio，就切換到右上角。
+      top 值避開卡片圓角與照片邊界。
+    */
+    .device-mobile .hero-mobile-help.help-top-right{
+      top:clamp(16px,2.6vh,24px);
+      bottom:auto;
     }
 
     .hero-hint{
       min-width:0;
       display:grid;
-      gap:2px;
+      gap:1px;
 
-      font-size:clamp(.57rem,2.25vw,.70rem);
+      font-size:clamp(.54rem,2.0vw,.66rem);
       font-weight:580;
-      line-height:1.22;
+      line-height:1.18;
       text-align:right;
       letter-spacing:.01em;
 
-      opacity:.82;
+      opacity:.78;
       pointer-events:none;
     }
 
@@ -1554,8 +1572,8 @@
       appearance:none;
       flex:0 0 auto;
 
-      width:clamp(34px,9.5vw,40px);
-      height:clamp(34px,9.5vw,40px);
+      width:clamp(33px,9vw,38px);
+      height:clamp(33px,9vw,38px);
 
       border:1px solid rgba(255,255,255,.18);
       border-radius:50%;
@@ -1588,8 +1606,8 @@
 
     .playback-toggle svg{
       grid-area:1 / 1;
-      width:18px;
-      height:18px;
+      width:17px;
+      height:17px;
       fill:currentColor;
 
       transition:
@@ -1619,29 +1637,30 @@
     }
 
     /*
-      橫向手機空間較少，提示改成更精簡，
-      但暫停按鈕仍保留。
+      橫向手機：預設直接放右上角，因為照片底部通常更容易
+      被姓名/介紹文字佔用。
     */
     @media (orientation:landscape){
       .device-mobile .hero-mobile-help{
-        right:clamp(12px,2vw,20px);
-        bottom:clamp(10px,2.8vh,18px);
-        gap:7px;
-        max-width:min(44%,180px);
+        top:clamp(10px,2.5vh,17px);
+        right:clamp(11px,1.9vw,18px);
+        bottom:auto;
+        gap:6px;
+        max-width:min(40%,165px);
       }
 
       .device-mobile .hero-hint{
-        font-size:clamp(.50rem,1.55vh,.63rem);
+        font-size:clamp(.48rem,1.45vh,.60rem);
       }
 
       .device-mobile .playback-toggle{
-        width:clamp(30px,7.3vh,36px);
-        height:clamp(30px,7.3vh,36px);
+        width:clamp(29px,7vh,35px);
+        height:clamp(29px,7vh,35px);
       }
 
       .device-mobile .playback-toggle svg{
-        width:16px;
-        height:16px;
+        width:15px;
+        height:15px;
       }
     }
 
@@ -2080,6 +2099,8 @@
       const viewerImage = document.getElementById("photo-viewer-image");
       const viewerClose = document.getElementById("photo-viewer-close");
       const playbackToggle = document.getElementById("playback-toggle");
+      const heroHelp = document.querySelector(".hero-mobile-help");
+      const bio = document.querySelector(".bio");
 
       const manifest = __IMAGE_MANIFEST_JSON__;
       const buildId = __IMAGE_BUILD_ID_JSON__;
@@ -2119,10 +2140,54 @@
         };
       };
 
+      const updateHelpPosition = () => {
+        if (
+          !isMobileDevice() ||
+          !heroHelp ||
+          !bio ||
+          !hero
+        ) {
+          return;
+        }
+
+        /*
+          橫向手機一律靠右上，避免和底部姓名/介紹區搶位置。
+        */
+        if (currentMode() === "landscape") {
+          heroHelp.classList.add("help-top-right");
+          return;
+        }
+
+        /*
+          直向先試右下角。若控制區跟 bio 重疊，或兩者距離
+          小於 12px，就移到右上角。
+        */
+        heroHelp.classList.remove("help-top-right");
+
+        requestAnimationFrame(() => {
+          const helpRect = heroHelp.getBoundingClientRect();
+          const bioRect = bio.getBoundingClientRect();
+
+          const horizontallyOverlaps =
+            helpRect.left < bioRect.right + 8 &&
+            helpRect.right > bioRect.left - 8;
+
+          const verticallyTooClose =
+            helpRect.top < bioRect.bottom + 12 &&
+            helpRect.bottom > bioRect.top - 12;
+
+          if (horizontallyOverlaps && verticallyTooClose) {
+            heroHelp.classList.add("help-top-right");
+          }
+        });
+      };
+
       const updateViewport = () => {
         const {width, height} = viewportSize();
         root.style.setProperty("--vwpx", width + "px");
         root.style.setProperty("--vhpx", height + "px");
+
+        requestAnimationFrame(updateHelpPosition);
       };
 
       const currentMode = () => {
@@ -2762,6 +2827,7 @@
       updateViewport();
       lastMode = currentMode();
       showNextForMode(lastMode, false, 1);
+      requestAnimationFrame(updateHelpPosition);
 
       window.setTimeout(() => {
         document.body.classList.add(
@@ -2848,6 +2914,12 @@
           }
         }
       );
+
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready
+          .then(updateHelpPosition)
+          .catch(() => {});
+      }
 
       window.addEventListener(
         "pageshow",
