@@ -21,6 +21,18 @@
       --text:#fff7f6;
       --pink:#ffb3c1;
 
+      /*
+        名片永遠跟著目前可視範圍調整，但不貼滿瀏覽器邊界。
+        手機約 12px，較大的螢幕會自然增加到最多 24px。
+      */
+      --outer-gap:clamp(12px,2.4vmin,24px);
+
+      /*
+        橫向右側工具列左右留白統一用同一個值，
+        避免左邊到圖片與右邊到名片邊界看起來不一致。
+      */
+      --toolbar-gap-x:clamp(10px,1vw,14px);
+
       /* JS 會用 visualViewport 的真正可視範圍更新這兩個值 */
       --vwpx:100vw;
       --vhpx:100vh;
@@ -65,20 +77,25 @@
       display:grid;
       place-items:center;
       overflow:hidden;
+
+      /*
+        safe-area 與我們自己的外距取較大值。
+        所以有瀏海 / 圓角螢幕時也不會貼邊。
+      */
       padding:
-        max(6px, env(safe-area-inset-top))
-        max(6px, env(safe-area-inset-right))
-        max(6px, env(safe-area-inset-bottom))
-        max(6px, env(safe-area-inset-left));
+        max(var(--outer-gap), env(safe-area-inset-top))
+        max(var(--outer-gap), env(safe-area-inset-right))
+        max(var(--outer-gap), env(safe-area-inset-bottom))
+        max(var(--outer-gap), env(safe-area-inset-left));
     }
 
     .card{
       /*
-        不使用固定 650px/760px 高度。
-        整張卡直接以「目前瀏覽器真正可見高度」為上限。
+        直向仍維持最多 460 × 900，
+        但寬高改成吃「viewport 扣掉外距後」的可用空間。
       */
-      width:min(calc(var(--vwpx) - 12px),460px);
-      height:min(calc(var(--vhpx) - 12px),900px);
+      width:min(100%,460px);
+      height:min(100%,900px);
       min-height:0;
 
       display:flex;
@@ -316,10 +333,16 @@
       .bio{font-size:.64rem;line-height:1.4}
     }
 
+    @media (max-width:340px){
+      :root{
+        --outer-gap:10px;
+      }
+    }
+
     @media (max-width:520px){
       .card{
-        width:calc(var(--vwpx) - 12px);
-        height:calc(var(--vhpx) - 12px);
+        width:100%;
+        height:100%;
         border-radius:20px;
       }
     }
@@ -333,17 +356,9 @@
       IG 放最下方而且只保留圖示。
     */
     @media (orientation:landscape){
-      .viewport{
-        padding:
-          max(6px, env(safe-area-inset-top))
-          max(6px, env(safe-area-inset-right))
-          max(6px, env(safe-area-inset-bottom))
-          max(6px, env(safe-area-inset-left));
-      }
-
       .card{
-        width:calc(var(--vwpx) - 12px);
-        height:calc(var(--vhpx) - 12px);
+        width:100%;
+        height:100%;
         max-width:none;
         max-height:none;
 
@@ -389,11 +404,19 @@
         grid-template-rows:minmax(0,1fr) auto;
         gap:clamp(7px,1.6vh,12px);
 
-        padding:
-          clamp(8px,1.6vh,14px)
-          clamp(7px,.8vw,11px);
+        /*
+          上下間距可隨高度縮放；
+          左右則完全共用同一個 toolbar-gap-x。
+        */
+        padding-block:clamp(8px,1.6vh,14px);
+        padding-inline:var(--toolbar-gap-x);
 
-        border-left:1px solid rgba(255,255,255,.08);
+        /*
+          用 inset 線取代 border-left。
+          線不再佔 box model 寬度，所以左右留白是真正對稱的。
+        */
+        border-left:0;
+        box-shadow:inset 1px 0 rgba(255,255,255,.08);
       }
 
       .quick-actions{
@@ -465,9 +488,8 @@
       }
 
       .contact-panel{
-        padding:
-          clamp(10px,1.8vh,16px)
-          clamp(8px,.75vw,12px);
+        padding-block:clamp(10px,1.8vh,16px);
+        padding-inline:var(--toolbar-gap-x);
       }
     }
 
@@ -478,7 +500,8 @@
       }
 
       .contact-panel{
-        padding:5px 5px;
+        padding-block:5px;
+        padding-inline:7px;
         gap:5px;
       }
 
