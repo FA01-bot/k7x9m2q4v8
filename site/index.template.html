@@ -1709,6 +1709,130 @@
     }
 
 
+
+    /* ---------------------------------------------------------------
+       電腦版照片控制：放在照片右下角、右側 IG 面板的左邊
+       --------------------------------------------------------------- */
+    .desktop-photo-controls{
+      display:none;
+    }
+
+    .device-desktop .desktop-photo-controls{
+      position:absolute;
+      z-index:7;
+      right:clamp(16px,1.35vw,22px);
+      bottom:clamp(16px,1.35vw,22px);
+
+      display:flex;
+      align-items:center;
+      gap:7px;
+
+      padding:6px;
+
+      border:1px solid rgba(255,255,255,.11);
+      border-radius:999px;
+
+      background:rgba(26,31,47,.42);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.07),
+        0 8px 28px rgba(0,0,0,.18);
+
+      backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px);
+    }
+
+    .desktop-photo-control{
+      appearance:none;
+      -webkit-appearance:none;
+
+      width:clamp(36px,2.55vw,43px);
+      height:clamp(36px,2.55vw,43px);
+
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:50%;
+
+      display:grid;
+      place-items:center;
+
+      background:rgba(255,255,255,.035);
+      color:rgba(255,255,255,.90);
+
+      cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
+
+      transition:
+        transform .14s ease,
+        background .16s ease,
+        border-color .16s ease,
+        color .16s ease;
+    }
+
+    .desktop-photo-control:hover{
+      background:rgba(255,255,255,.085);
+      border-color:rgba(255,255,255,.15);
+      color:#fff;
+    }
+
+    .desktop-photo-control:active{
+      transform:scale(.91);
+    }
+
+    .desktop-photo-control svg{
+      grid-area:1 / 1;
+      width:18px;
+      height:18px;
+      fill:none;
+      stroke:currentColor;
+      stroke-width:2.15;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+
+    .desktop-playback-toggle .pause-symbol,
+    .desktop-playback-toggle .play-symbol{
+      fill:currentColor;
+      stroke:none;
+      transition:
+        opacity .18s ease,
+        transform .18s ease;
+    }
+
+    .desktop-playback-toggle .play-symbol{
+      opacity:0;
+      transform:scale(.72);
+    }
+
+    .desktop-playback-toggle[aria-pressed="true"]{
+      color:var(--pink);
+      background:rgba(255,179,193,.11);
+      border-color:rgba(255,179,193,.24);
+    }
+
+    .desktop-playback-toggle[aria-pressed="true"] .pause-symbol{
+      opacity:0;
+      transform:scale(.72);
+    }
+
+    .desktop-playback-toggle[aria-pressed="true"] .play-symbol{
+      opacity:1;
+      transform:scale(1);
+    }
+
+    @media (max-width:900px){
+      .device-desktop .desktop-photo-controls{
+        right:14px;
+        bottom:14px;
+        gap:5px;
+        padding:5px;
+      }
+
+      .desktop-photo-control{
+        width:35px;
+        height:35px;
+      }
+    }
+
+
     /* 開場動畫 */
     @keyframes cardEnter{
       from{
@@ -1841,6 +1965,49 @@
 
           <svg class="play-symbol" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M8.2 5.8a1.4 1.4 0 0 1 2.12-1.18l8.1 6.2a1.48 1.48 0 0 1 0 2.36l-8.1 6.2A1.4 1.4 0 0 1 8.2 18.2V5.8Z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="desktop-photo-controls" aria-label="照片播放控制">
+        <button
+          class="desktop-photo-control"
+          id="desktop-photo-prev"
+          type="button"
+          aria-label="上一張照片"
+          title="上一張"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15.5 5.5 9 12l6.5 6.5"></path>
+          </svg>
+        </button>
+
+        <button
+          class="desktop-photo-control desktop-playback-toggle"
+          id="desktop-playback-toggle"
+          type="button"
+          aria-label="暫停照片播放"
+          aria-pressed="false"
+          title="暫停播放"
+        >
+          <svg class="pause-symbol" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="7" y="5" width="3.5" height="14" rx="1.3"></rect>
+            <rect x="13.5" y="5" width="3.5" height="14" rx="1.3"></rect>
+          </svg>
+          <svg class="play-symbol" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8.2 5.8a1.4 1.4 0 0 1 2.12-1.18l8.1 6.2a1.48 1.48 0 0 1 0 2.36l-8.1 6.2A1.4 1.4 0 0 1 8.2 18.2V5.8Z"></path>
+          </svg>
+        </button>
+
+        <button
+          class="desktop-photo-control"
+          id="desktop-photo-next"
+          type="button"
+          aria-label="下一張照片"
+          title="下一張"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m8.5 5.5 6.5 6.5-6.5 6.5"></path>
           </svg>
         </button>
       </div>
@@ -2148,6 +2315,9 @@
       const viewerImage = document.getElementById("photo-viewer-image");
       const viewerClose = document.getElementById("photo-viewer-close");
       const playbackToggle = document.getElementById("playback-toggle");
+      const desktopPlaybackToggle = document.getElementById("desktop-playback-toggle");
+      const desktopPrev = document.getElementById("desktop-photo-prev");
+      const desktopNext = document.getElementById("desktop-photo-next");
       const heroHelp = document.querySelector(".hero-mobile-help");
       const bio = document.querySelector(".bio");
 
@@ -3146,19 +3316,45 @@
       );
 
       const updatePlaybackButton = () => {
-        if (!playbackToggle) return;
+        const pressed =
+          playbackPaused ? "true" : "false";
 
-        playbackToggle.setAttribute(
-          "aria-pressed",
-          playbackPaused ? "true" : "false"
-        );
-
-        playbackToggle.setAttribute(
-          "aria-label",
+        const label =
           playbackPaused
             ? "繼續照片播放"
-            : "暫停照片播放"
-        );
+            : "暫停照片播放";
+
+        const title =
+          playbackPaused
+            ? "繼續播放"
+            : "暫停播放";
+
+        if (playbackToggle) {
+          playbackToggle.setAttribute(
+            "aria-pressed",
+            pressed
+          );
+
+          playbackToggle.setAttribute(
+            "aria-label",
+            label
+          );
+        }
+
+        if (desktopPlaybackToggle) {
+          desktopPlaybackToggle.setAttribute(
+            "aria-pressed",
+            pressed
+          );
+
+          desktopPlaybackToggle.setAttribute(
+            "aria-label",
+            label
+          );
+
+          desktopPlaybackToggle.title =
+            title;
+        }
       };
 
       const setPlaybackPaused = (
@@ -3212,6 +3408,46 @@
 
           setPlaybackPaused(
             !playbackPaused
+          );
+        }
+      );
+
+      desktopPlaybackToggle?.addEventListener(
+        "click",
+        (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          setPlaybackPaused(
+            !playbackPaused
+          );
+        }
+      );
+
+      desktopPrev?.addEventListener(
+        "click",
+        (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          showNextForMode(
+            lastMode || currentMode(),
+            false,
+            -1
+          );
+        }
+      );
+
+      desktopNext?.addEventListener(
+        "click",
+        (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          showNextForMode(
+            lastMode || currentMode(),
+            false,
+            1
           );
         }
       );
