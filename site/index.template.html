@@ -550,7 +550,13 @@
 
 
 
-    /* 旋轉時：舊圖留著，新圖載入完成後才做較長的交叉淡入淡出 */
+    /*
+      圖片層：
+      - 漸層仍然只蓋在圖片上
+      - 文字位於漸層上方
+      - 每張圖片約 5 秒慢慢放大
+      - 下一張載入完成後才做長一點的交叉淡化
+    */
     .hero{
       isolation:isolate;
     }
@@ -558,11 +564,15 @@
     .hero-photo{
       opacity:0;
       z-index:0;
+      transform:scale(1.01);
+      filter:saturate(.88) brightness(.91) contrast(.96);
+
       transition:
-        opacity 1.45s cubic-bezier(.22,.70,.20,1),
-        transform 1.55s cubic-bezier(.22,.70,.20,1),
-        filter 1.45s ease;
+        opacity 1.65s cubic-bezier(.22,.70,.20,1),
+        filter 1.65s ease;
+
       will-change:opacity,transform,filter;
+      backface-visibility:hidden;
     }
 
     .hero-photo.is-active{
@@ -570,12 +580,26 @@
       z-index:1;
     }
 
-    .hero-photo.is-waiting{
-      opacity:0;
-      transform:scale(1.035);
-      filter:saturate(.82) brightness(.84) contrast(.94) blur(1.5px);
+    /*
+      這個 class 在新圖片真正載完後才加入。
+      transform 用約 5.4 秒慢慢放大，形成很輕的 Ken Burns 效果。
+    */
+    .hero-photo.is-active.is-zooming{
+      transform:scale(1.075);
+      transition:
+        opacity 1.65s cubic-bezier(.22,.70,.20,1),
+        transform 5.4s cubic-bezier(.16,.68,.28,1),
+        filter 1.65s ease;
     }
 
+    .hero-photo.is-waiting{
+      opacity:0;
+      z-index:0;
+      transform:scale(1.01);
+      filter:saturate(.84) brightness(.86) contrast(.95) blur(1px);
+    }
+
+    /* 圖片 -> 漸層 -> 文字 */
     .hero::after{
       z-index:2;
     }
@@ -586,7 +610,7 @@
 
     @keyframes orientationContentIn{
       from{
-        opacity:.15;
+        opacity:.18;
         transform:translateY(12px);
       }
       to{
@@ -597,7 +621,7 @@
 
     @keyframes orientationPanelIn{
       from{
-        opacity:.30;
+        opacity:.32;
         transform:translateX(8px);
       }
       to{
@@ -607,32 +631,29 @@
     }
 
     body.opening-finished .card,
-    body.opening-finished .hero img,
     body.opening-finished .intro,
     body.opening-finished .quick,
     body.opening-finished .instagram{
       animation:none;
-    }
-
-    body.opening-finished .intro,
-    body.opening-finished .quick,
-    body.opening-finished .instagram{
       opacity:1;
       transform:none;
     }
 
+    /*
+      旋轉期間如果新方向圖片還在下載，
+      舊圖片只稍微變柔，不會先消失。
+    */
     body.opening-finished .card.orientation-loading .hero-photo.is-active{
-      opacity:.82;
-      transform:scale(1.015);
-      filter:saturate(.84) brightness(.86) contrast(.95);
+      opacity:.88;
+      filter:saturate(.85) brightness(.88) contrast(.95);
     }
 
     body.opening-finished .card.orientation-transition .intro{
-      animation:orientationContentIn .95s cubic-bezier(.22,.72,.2,1) .18s both !important;
+      animation:orientationContentIn 1.15s cubic-bezier(.22,.72,.2,1) .20s both !important;
     }
 
     body.opening-finished .card.orientation-transition .contact-panel{
-      animation:orientationPanelIn 1.00s cubic-bezier(.22,.72,.2,1) .12s both !important;
+      animation:orientationPanelIn 1.20s cubic-bezier(.22,.72,.2,1) .15s both !important;
       transform-origin:center;
     }
 
@@ -807,13 +828,23 @@
       const portraitImages = Array.isArray(manifest.portrait) ? manifest.portrait : [];
       const landscapeImages = Array.isArray(manifest.landscape) ? manifest.landscape : [];
 
+      /*
+        每張照片約 5 秒後開始換下一張。
+        如果下一張網路還沒載完，舊照片會繼續留著，
+        等新照片 decode 完才真正交叉淡化。
+      */
+      const SLIDE_INTERVAL = 5200;
+      const CROSSFADE_MS = 1650;
+
       const memoryIndex = {portrait:0, landscape:0};
 
       let activeLayer = 0;
       let lastMode = null;
       let orientationTimer = 0;
       let transitionTimer = 0;
+      let slideshowTimer = 0;
       let loadGeneration = 0;
+      let switching = false;
 
       const viewportSize = () => {
         const vv = window.visualViewport;
@@ -847,8 +878,8 @@
       };
 
       /*
-        依檔名順序播放，不隨機。
-        每組各自循環：01 → 02 → 03 → 01……
+        不隨機，照檔名順序循環。
+        建議用 01.jpg / 02.jpg / 03.jpg 控制播放順序。
       */
       const nextSequential = (items, mode) => {
         if (!Array.isArray(items) || items.length === 0) return "";
@@ -866,7 +897,10 @@
         const nextIndex = (normalized + 1) % items.length;
 
         memoryIndex[mode] = nextIndex;
-        try { localStorage.setItem(key, String(nextIndex)); } catch (_) {}
+
+        try {
+          localStorage.setItem(key, String(nextIndex));
+        } catch (_) {}
 
         return picked;
       };
@@ -927,7 +961,24 @@
         }
       };
 
-      const startPanelAnimation = () => {
+      const clearSlideshow = () => {
+        clearTimeout(slideshowTimer);
+        slideshowTimer = 0;
+      };
+
+      const scheduleSlideshow = () => {
+        clearSlideshow();
+
+        if (document.hidden) return;
+
+        slideshowTimer = window.setTimeout(() => {
+          if (!switching && lastMode) {
+            showNextForMode(lastMode, false);
+          }
+        }, SLIDE_INTERVAL);
+      };
+
+      const startOrientationAnimation = () => {
         if (!card || !document.body.classList.contains("opening-finished")) return;
 
         card.classList.remove("orientation-transition");
@@ -937,30 +988,60 @@
         clearTimeout(transitionTimer);
         transitionTimer = window.setTimeout(() => {
           card.classList.remove("orientation-transition");
-        }, 1500);
+        }, 1650);
       };
 
-      const crossfadeTo = async (path, animate = false) => {
-        if (!path) return;
+      const startZoom = (layer) => {
+        if (!layer) return;
+
+        layer.classList.remove("is-zooming");
+
+        /*
+          先讓圖片以 scale(1.01) 畫一個 frame，
+          再加 is-zooming，瀏覽器才會真的跑 5.4 秒放大。
+        */
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (layer.classList.contains("is-active")) {
+              layer.classList.add("is-zooming");
+            }
+          });
+        });
+      };
+
+      const crossfadeTo = async (path, orientationChange = false) => {
+        if (!path) return false;
+
+        clearSlideshow();
+        switching = true;
 
         const generation = ++loadGeneration;
         const url = versionedUrl(path);
 
-        if (animate && card) {
+        if (orientationChange && card) {
           card.classList.add("orientation-loading");
         }
 
-        // 舊圖不會先消失；先在背景把新圖載完。
+        /*
+          先把新圖在背景載完。
+          這段時間目前照片仍完整顯示，所以慢網路不會出現空白。
+        */
         const loaded = await loadImage(url);
 
-        // 如果使用者又旋轉了一次，舊的載入結果直接丟掉。
-        if (generation !== loadGeneration) return;
+        if (generation !== loadGeneration) {
+          switching = false;
+          return false;
+        }
 
         if (card) {
           card.classList.remove("orientation-loading");
         }
 
-        if (!loaded) return;
+        if (!loaded) {
+          switching = false;
+          scheduleSlideshow();
+          return false;
+        }
 
         const oldIndex = activeLayer;
         const newIndex = oldIndex === 0 ? 1 : 0;
@@ -968,44 +1049,81 @@
         const oldLayer = layers[oldIndex];
         const newLayer = layers[newIndex];
 
-        if (!oldLayer || !newLayer) return;
+        if (!oldLayer || !newLayer) {
+          switching = false;
+          scheduleSlideshow();
+          return false;
+        }
 
-        newLayer.classList.remove("is-active");
+        newLayer.classList.remove("is-active", "is-zooming");
         newLayer.classList.add("is-waiting");
         newLayer.src = url;
 
-        // 讓瀏覽器先套用等待狀態，再開始 1.45 秒交叉淡化。
-        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        /*
+          loadImage 已經 decode 過同一 URL；
+          這裡再等一次新 layer 本身 decode，避免某些手機第一幀閃一下。
+        */
+        try {
+          if (typeof newLayer.decode === "function") {
+            await newLayer.decode();
+          }
+        } catch (_) {}
 
-        if (generation !== loadGeneration) return;
+        if (generation !== loadGeneration) {
+          switching = false;
+          return false;
+        }
+
+        await new Promise(resolve =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve))
+        );
 
         newLayer.classList.remove("is-waiting");
         newLayer.classList.add("is-active");
-        oldLayer.classList.remove("is-active");
+
+        oldLayer.classList.remove("is-active", "is-zooming");
 
         activeLayer = newIndex;
 
-        if (animate) {
-          startPanelAnimation();
+        startZoom(newLayer);
+
+        if (orientationChange) {
+          startOrientationAnimation();
         }
 
-        // 等淡出完成後再清掉舊層，避免旋轉過程出現空白。
+        /*
+          交叉淡化結束後才清掉舊圖。
+          這樣 1.65 秒內兩張照片會同時存在，轉換比較柔順。
+        */
         window.setTimeout(() => {
-          if (activeLayer !== oldIndex && !oldLayer.classList.contains("is-active")) {
+          if (
+            activeLayer !== oldIndex &&
+            !oldLayer.classList.contains("is-active")
+          ) {
             oldLayer.removeAttribute("src");
           }
-        }, 1650);
+        }, CROSSFADE_MS + 180);
+
+        switching = false;
+        scheduleSlideshow();
+        return true;
       };
 
-      const showNextForMode = async (mode, animate = false) => {
+      const showNextForMode = async (mode, orientationChange = false) => {
         const pool = poolFor(mode);
         const next = nextSequential(pool, mode);
 
-        if (!next) return;
+        if (!next) {
+          scheduleSlideshow();
+          return;
+        }
 
-        await crossfadeTo(next, animate);
+        await crossfadeTo(next, orientationChange);
 
-        // 預載下一張同方向，以及另一方向的下一張。
+        /*
+          順序播放的好處是知道下一張是誰，
+          可以趁目前圖片顯示的 5 秒先預載。
+        */
         preload(peekSequential(pool, mode));
 
         const otherMode = mode === "portrait" ? "landscape" : "portrait";
@@ -1018,6 +1136,7 @@
         const mode = currentMode();
         if (mode === lastMode) return;
 
+        clearSlideshow();
         lastMode = mode;
         showNextForMode(mode, true);
       };
@@ -1031,7 +1150,10 @@
         }, 140);
       };
 
-      // 初次開啟。
+      /*
+        初次開啟：
+        第一張 decode 完才出現，然後開始慢慢放大。
+      */
       updateViewport();
       lastMode = currentMode();
       showNextForMode(lastMode, false);
@@ -1041,8 +1163,8 @@
       }, 1200);
 
       /*
-        不同手機/瀏覽器旋轉時會觸發不同事件。
-        多路監聽，但只有方向真的改變才換一次照片。
+        不同手機旋轉會走不同事件，所以多路監聽。
+        真正換照片前仍會判斷方向是否真的改變，不會重複跳圖。
       */
       window.addEventListener("orientationchange", scheduleOrientationCheck, {passive:true});
       window.addEventListener("resize", scheduleOrientationCheck, {passive:true});
@@ -1059,9 +1181,11 @@
         }
       }
 
-      if (window.screen &&
-          window.screen.orientation &&
-          window.screen.orientation.addEventListener) {
+      if (
+        window.screen &&
+        window.screen.orientation &&
+        window.screen.orientation.addEventListener
+      ) {
         window.screen.orientation.addEventListener("change", scheduleOrientationCheck);
       }
 
@@ -1070,9 +1194,26 @@
         window.visualViewport.addEventListener("scroll", updateViewport, {passive:true});
       }
 
+      /*
+        分頁切到背景就停止輪播，避免偷偷下載/跑動畫。
+        回到網頁後再從目前照片開始計 5 秒。
+      */
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          clearSlideshow();
+        } else {
+          updateViewport();
+          scheduleSlideshow();
+        }
+      });
+
       window.addEventListener("pageshow", (event) => {
         updateViewport();
-        if (event.persisted) scheduleOrientationCheck();
+
+        if (event.persisted) {
+          scheduleOrientationCheck();
+          scheduleSlideshow();
+        }
       });
     })();
   </script>
