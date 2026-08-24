@@ -1,6 +1,7 @@
 from pathlib import Path
 import os, html, re, shutil, json, hashlib
 from PIL import Image, ImageOps
+import qrcode
 
 required = [
     "CARD_PATH","CARD_NAME","CARD_PHONE","CARD_EMAIL",
@@ -26,11 +27,10 @@ target.mkdir(parents=True)
 image_exts = {".jpg", ".jpeg", ".png", ".webp", ".avif"}
 
 def natural_key(path):
-    # 01.jpg, 02.jpg, 10.jpg will be ordered as 1, 2, 10.
     text = path.as_posix().lower()
     return [
         int(part) if part.isdigit() else part
-        for part in re.split(r"(\\d+)", text)
+        for part in re.split(r"(\d+)", text)
     ]
 
 def collect(folder):
@@ -56,10 +56,7 @@ def optimize_group(files, group):
     out_dir = target / "media" / group
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    if group == "portrait":
-        max_size = (1200, 2000)
-    else:
-        max_size = (2000, 1200)
+    max_size = (1200, 2000) if group == "portrait" else (2000, 1200)
 
     urls = []
     total_before = 0
@@ -68,16 +65,14 @@ def optimize_group(files, group):
     for source in files:
         raw = source.read_bytes()
         total_before += len(raw)
+
         digest = hashlib.sha256(raw).hexdigest()[:16]
         dest = out_dir / f"{digest}.webp"
 
         with Image.open(source) as im:
             im = ImageOps.exif_transpose(im)
-
-            # Photos do not need huge source dimensions on a business-card page.
             im.thumbnail(max_size, Image.Resampling.LANCZOS)
 
-            # Preserve alpha only when it actually exists.
             if "A" in im.getbands():
                 im = im.convert("RGBA")
             else:
@@ -96,10 +91,12 @@ def optimize_group(files, group):
 
     before_mb = total_before / (1024 * 1024)
     after_mb = total_after / (1024 * 1024)
+
     print(
         f"{group}: {len(files)} image(s), "
         f"{before_mb:.2f} MB source -> {after_mb:.2f} MB deployed WebP"
     )
+
     return urls
 
 portrait_images = optimize_group(portrait_sources, "portrait")
@@ -115,11 +112,15 @@ manifest = {
     "landscape": landscape_images,
 }
 
-# Version is based on optimized image URLs, so replacing photos changes the cache key.
 manifest_text = json.dumps(manifest, ensure_ascii=False, separators=(",", ":"))
 build_id = hashlib.sha256(manifest_text.encode("utf-8")).hexdigest()[:16]
 
-manifest_json = manifest_text.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+manifest_json = (
+    manifest_text
+    .replace("<", "\\u003c")
+    .replace(">", "\\u003e")
+    .replace("&", "\\u0026")
+)
 build_id_json = json.dumps(build_id)
 
 vals = {
@@ -140,7 +141,12 @@ page = page.replace("__IMAGE_BUILD_ID_JSON__", build_id_json)
 (target / "index.html").write_text(page, encoding="utf-8")
 
 def vcard_escape(v):
-    return v.replace("\\","\\\\").replace("\n","\\n").replace(";","\\;").replace(",","\\,")
+    return (
+        v.replace("\\","\\\\")
+         .replace("\n","\\n")
+         .replace(";","\\;")
+         .replace(",","\\,")
+    )
 
 vcf_vals = {
     "__CARD_NAME__": vcard_escape(os.environ["CARD_NAME"]),
@@ -154,9 +160,52 @@ vcf_vals = {
 vcf = (site / "contact.template.vcf").read_text(encoding="utf-8")
 for token, value in vcf_vals.items():
     vcf = vcf.replace(token, value)
-(target / "contact.vcf").write_text(vcf, encoding="utf-8", newline="\r\n")
 
-(out / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
+(target / "contact.vcf").write_text(
+    vcf,
+    encoding="utf-8",
+    newline="\r\n"
+)
+
+# ------------------------------------------------------------------
+# QR Code for the deployed card URL.
+# This avoids loading a third-party QR service or JS library at runtime.
+# ------------------------------------------------------------------
+repo_full = os.environ.get("GITHUB_REPOSITORY", "").strip()
+owner = os.environ.get("GITHUB_REPOSITORY_OWNER", "").strip()
+
+if repo_full and "/" in repo_full:
+    repo_owner, repo_name = repo_full.split("/", 1)
+    if not owner:
+        owner = repo_owner
+else:
+    # Current repository fallback; GITHUB_REPOSITORY is present in Actions.
+    owner = owner or "FA01-bot"
+    repo_name = "k7x9m2q4v8"
+
+card_url = f"https://{owner.lower()}.github.io/{repo_name}/{card_path}/"
+
+qr = qrcode.QRCode(
+    version=None,
+    error_correction=qrcode.constants.ERROR_CORRECT_M,
+    box_size=9,
+    border=4,
+)
+qr.add_data(card_url)
+qr.make(fit=True)
+
+qr_img = qr.make_image(
+    fill_color="#121728",
+    back_color="#ffffff"
+).convert("RGB")
+qr_img.save(target / "qr.png", optimize=True)
+
+print(f"QR generated for: {card_url}")
+
+(out / "robots.txt").write_text(
+    "User-agent: *\nDisallow: /\n",
+    encoding="utf-8"
+)
 
 root_page = """<!doctype html>
 <html lang="zh-Hant"><head><meta charset="utf-8">
