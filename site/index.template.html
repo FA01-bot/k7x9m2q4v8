@@ -1254,13 +1254,6 @@
         width:23px;
         height:23px;
       }
-
-      .qr-card{
-        width:min(42vh,240px);
-        margin:4px auto 8px;
-        padding:10px;
-        border-radius:18px;
-      }
     }
 
 
@@ -1363,25 +1356,21 @@
       inset:0;
       z-index:1200;
 
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      display:block;
+      width:100%;
+      height:100%;
+      padding:0;
+      overflow:hidden;
 
-      padding:
-        max(10px,env(safe-area-inset-top))
-        max(10px,env(safe-area-inset-right))
-        max(10px,env(safe-area-inset-bottom))
-        max(10px,env(safe-area-inset-left));
-
-      background:rgba(6,8,15,.94);
-      backdrop-filter:blur(14px);
-      -webkit-backdrop-filter:blur(14px);
+      background:#05070d;
 
       opacity:0;
       visibility:hidden;
       pointer-events:none;
 
-      transition:opacity .28s ease,visibility .28s ease;
+      transition:
+        opacity .32s ease,
+        visibility .32s ease;
     }
 
     .photo-viewer.open{
@@ -1390,71 +1379,302 @@
       pointer-events:auto;
     }
 
+    body.viewer-open{
+      overflow:hidden;
+    }
+
+    /*
+      進入瀏覽器 Fullscreen API 後同樣強制填滿整個裝置畫面。
+      不支援 Fullscreen API 的手機則使用 fixed inset:0 fallback。
+    */
+    .photo-viewer:fullscreen,
+    .photo-viewer:-webkit-full-screen{
+      width:100vw;
+      height:100vh;
+      background:#05070d;
+    }
+
     .photo-viewer-stage{
       position:absolute;
       inset:0;
-
-      display:flex;
-      align-items:center;
-      justify-content:center;
-
-      padding:
-        max(48px,calc(env(safe-area-inset-top) + 40px))
-        max(12px,env(safe-area-inset-right))
-        max(24px,env(safe-area-inset-bottom))
-        max(12px,env(safe-area-inset-left));
-
+      overflow:hidden;
+      padding:0;
       touch-action:none;
+      background:#05070d;
     }
 
-    .photo-viewer-stage img{
+    .viewer-photo{
+      position:absolute;
+      inset:0;
+
       display:block;
       width:100%;
       height:100%;
-      object-fit:contain;
 
-      opacity:1;
-      transform:scale(1);
-      transition:opacity .24s ease,transform .24s ease;
+      /*
+        桌布模式：直接填滿整個螢幕。
+        超出的部分裁切，而不是留下黑邊。
+      */
+      object-fit:cover;
+      object-position:center;
+
+      opacity:0;
+      transform:scale(1.01);
+      transform-origin:center center;
+
+      transition:
+        opacity 2.05s cubic-bezier(.22,.70,.22,1);
+
       user-select:none;
       -webkit-user-drag:none;
+      will-change:opacity,transform;
     }
 
-    .photo-viewer-stage img.changing{
-      opacity:.34;
-      transform:scale(.985);
+    .viewer-photo.is-active{
+      opacity:1;
+    }
+
+    .viewer-photo.is-outgoing{
+      opacity:0;
+    }
+
+    .photo-viewer-topbar{
+      position:absolute;
+      z-index:4;
+      top:max(14px,env(safe-area-inset-top));
+      left:max(14px,env(safe-area-inset-left));
+      right:max(14px,env(safe-area-inset-right));
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+
+      pointer-events:none;
+    }
+
+    .photo-viewer-count{
+      min-width:58px;
+      padding:8px 12px;
+
+      border:1px solid rgba(255,255,255,.13);
+      border-radius:999px;
+
+      background:rgba(24,29,43,.48);
+      color:rgba(255,255,255,.92);
+
+      backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px);
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.07),
+        0 6px 20px rgba(0,0,0,.18);
+
+      font-size:.75rem;
+      font-weight:700;
+      line-height:1;
+      text-align:center;
+
+      pointer-events:auto;
     }
 
     .photo-viewer-close{
-      position:absolute;
-      top:max(14px,env(safe-area-inset-top));
-      right:max(14px,env(safe-area-inset-right));
-      z-index:2;
-
       width:43px;
       height:43px;
 
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:15px;
+      border:1px solid rgba(255,255,255,.13);
+      border-radius:50%;
 
       display:grid;
       place-items:center;
 
-      background:rgba(32,38,56,.72);
+      background:rgba(24,29,43,.48);
       color:#fff;
 
       backdrop-filter:blur(10px);
       -webkit-backdrop-filter:blur(10px);
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.07),
+        0 6px 20px rgba(0,0,0,.18);
+
+      cursor:pointer;
+      pointer-events:auto;
       -webkit-tap-highlight-color:transparent;
     }
 
     .photo-viewer-close svg{
-      width:21px;
-      height:21px;
+      width:20px;
+      height:20px;
       fill:none;
       stroke:currentColor;
       stroke-width:2;
       stroke-linecap:round;
+    }
+
+    .photo-viewer-controls{
+      position:absolute;
+      z-index:4;
+      left:50%;
+      bottom:max(18px,calc(env(safe-area-inset-bottom) + 10px));
+      transform:translateX(-50%);
+
+      display:flex;
+      align-items:center;
+      gap:8px;
+
+      padding:7px;
+
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:999px;
+
+      background:rgba(24,29,43,.42);
+      backdrop-filter:blur(12px);
+      -webkit-backdrop-filter:blur(12px);
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.07),
+        0 8px 28px rgba(0,0,0,.24);
+    }
+
+    .viewer-control{
+      --photo-progress:0;
+
+      appearance:none;
+      -webkit-appearance:none;
+      position:relative;
+
+      width:42px;
+      height:42px;
+
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:50%;
+
+      display:grid;
+      place-items:center;
+
+      background:rgba(255,255,255,.035);
+      color:#fff;
+
+      cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
+
+      transition:
+        transform .14s ease,
+        background .16s ease,
+        color .16s ease;
+    }
+
+    .viewer-control:hover{
+      background:rgba(255,255,255,.085);
+    }
+
+    .viewer-control:active{
+      transform:scale(.91);
+    }
+
+    .viewer-control svg{
+      grid-area:1 / 1;
+      width:18px;
+      height:18px;
+
+      fill:none;
+      stroke:currentColor;
+      stroke-width:2.15;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+
+    .viewer-playback-toggle .pause-symbol,
+    .viewer-playback-toggle .play-symbol{
+      fill:currentColor;
+      stroke:none;
+
+      transition:
+        opacity .18s ease,
+        transform .18s ease;
+    }
+
+    .viewer-playback-toggle .play-symbol{
+      opacity:0;
+      transform:scale(.72);
+    }
+
+    .viewer-playback-toggle[aria-pressed="true"]{
+      color:var(--pink);
+      background:rgba(255,179,193,.10);
+    }
+
+    .viewer-playback-toggle[aria-pressed="true"] .pause-symbol{
+      opacity:0;
+      transform:scale(.72);
+    }
+
+    .viewer-playback-toggle[aria-pressed="true"] .play-symbol{
+      opacity:1;
+      transform:scale(1);
+    }
+
+    /*
+      5 秒播放進度環：手機、桌面、全螢幕三顆播放鍵共用。
+    */
+    .playback-toggle,
+    .desktop-playback-toggle,
+    .viewer-playback-toggle{
+      --photo-progress:0;
+      position:relative;
+      overflow:visible;
+    }
+
+    .playback-toggle::before,
+    .desktop-playback-toggle::before,
+    .viewer-playback-toggle::before{
+      content:"";
+      position:absolute;
+      inset:-4px;
+      border-radius:50%;
+      padding:2px;
+
+      background:
+        conic-gradient(
+          var(--pink) calc(var(--photo-progress) * 1turn),
+          rgba(255,255,255,.14) 0
+        );
+
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor;
+
+      mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      mask-composite:exclude;
+
+      pointer-events:none;
+      opacity:.92;
+    }
+
+    @media (max-width:700px){
+      .photo-viewer-count{
+        font-size:.70rem;
+        padding:7px 10px;
+      }
+
+      .photo-viewer-close{
+        width:40px;
+        height:40px;
+      }
+
+      .photo-viewer-controls{
+        bottom:max(15px,calc(env(safe-area-inset-bottom) + 8px));
+        gap:7px;
+        padding:6px;
+      }
+
+      .viewer-control{
+        width:39px;
+        height:39px;
+      }
     }
 
     @media (orientation:landscape) and (max-height:620px){
@@ -2216,17 +2436,51 @@
 
 
   <div class="photo-viewer" id="photo-viewer" aria-hidden="true">
-    <button class="photo-viewer-close" id="photo-viewer-close" type="button" aria-label="關閉照片">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M6.7 6.7 17.3 17.3M17.3 6.7 6.7 17.3"/>
-      </svg>
-    </button>
-
     <div class="photo-viewer-stage" id="photo-viewer-stage">
-      <img id="photo-viewer-image" alt="放大照片">
+      <img class="viewer-photo is-active" id="photo-viewer-a" alt="全螢幕照片">
+      <img class="viewer-photo" id="photo-viewer-b" alt="" aria-hidden="true">
+    </div>
+
+    <div class="photo-viewer-topbar">
+      <div class="photo-viewer-count" id="photo-viewer-count">1 / 1</div>
+
+      <button class="photo-viewer-close" id="photo-viewer-close" type="button" aria-label="關閉全螢幕照片">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6.7 6.7 17.3 17.3M17.3 6.7 6.7 17.3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="photo-viewer-controls" aria-label="全螢幕照片播放控制">
+      <button class="viewer-control" id="viewer-photo-prev" type="button" aria-label="上一張照片">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M15.5 5.5 9 12l6.5 6.5"/>
+        </svg>
+      </button>
+
+      <button
+        class="viewer-control viewer-playback-toggle"
+        id="viewer-playback-toggle"
+        type="button"
+        aria-label="暫停照片播放"
+        aria-pressed="false"
+      >
+        <svg class="pause-symbol" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="7" y="5" width="3.5" height="14" rx="1.3"/>
+          <rect x="13.5" y="5" width="3.5" height="14" rx="1.3"/>
+        </svg>
+        <svg class="play-symbol" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8.2 5.8a1.4 1.4 0 0 1 2.12-1.18l8.1 6.2a1.48 1.48 0 0 1 0 2.36l-8.1 6.2A1.4 1.4 0 0 1 8.2 18.2V5.8Z"/>
+        </svg>
+      </button>
+
+      <button class="viewer-control" id="viewer-photo-next" type="button" aria-label="下一張照片">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m8.5 5.5 6.5 6.5-6.5 6.5"/>
+        </svg>
+      </button>
     </div>
   </div>
-
 
   <script>
     (() => {
@@ -2241,8 +2495,16 @@
 
       const viewer = document.getElementById("photo-viewer");
       const viewerStage = document.getElementById("photo-viewer-stage");
-      const viewerImage = document.getElementById("photo-viewer-image");
+      const viewerLayers = [
+        document.getElementById("photo-viewer-a"),
+        document.getElementById("photo-viewer-b")
+      ];
       const viewerClose = document.getElementById("photo-viewer-close");
+      const viewerCount = document.getElementById("photo-viewer-count");
+      const viewerPlaybackToggle = document.getElementById("viewer-playback-toggle");
+      const viewerPrev = document.getElementById("viewer-photo-prev");
+      const viewerNext = document.getElementById("viewer-photo-next");
+
       const playbackToggle = document.getElementById("playback-toggle");
       const desktopPlaybackToggle = document.getElementById("desktop-playback-toggle");
       const desktopPrev = document.getElementById("desktop-photo-prev");
@@ -2272,6 +2534,9 @@
       let zoomFrame = 0;
       let zoomGeneration = 0;
       let viewerOpen = false;
+      let viewerActiveLayer = 0;
+      let nativeViewerFullscreen = false;
+      let currentPhotoPath = "";
       let playbackPaused = false;
 
       /*
@@ -2279,6 +2544,43 @@
         暫停、進全螢幕都不增加；恢復後從原本秒數繼續。
       */
       let currentPhotoElapsedMs = 0;
+
+      const progressButtons = () => [
+        playbackToggle,
+        desktopPlaybackToggle,
+        viewerPlaybackToggle
+      ].filter(Boolean);
+
+      const updateProgressUI = () => {
+        const progress =
+          Math.max(
+            0,
+            Math.min(
+              1,
+              currentPhotoElapsedMs /
+                ZOOM_DURATION
+            )
+          );
+
+        for (const button of progressButtons()) {
+          button.style.setProperty(
+            "--photo-progress",
+            String(progress)
+          );
+        }
+      };
+
+      const syncViewerScale = (scale) => {
+        if (!viewerOpen) return;
+
+        const layer =
+          viewerLayers[viewerActiveLayer];
+
+        if (!layer) return;
+
+        layer.style.transform =
+          `scale(${scale})`;
+      };
 
       const INITIAL_ZOOM_SPEED = 0.035;
       const BASE_SCALE = 1.01;
@@ -2583,7 +2885,6 @@
       ) => {
         if (
           !layer ||
-          viewerOpen ||
           playbackPaused
         ) {
           return;
@@ -2642,7 +2943,6 @@
             !layer.classList.contains(
               "is-active"
             ) ||
-            viewerOpen ||
             playbackPaused
           ) {
             return;
@@ -2693,6 +2993,9 @@
           layer.style.transform =
             `scale(${scale})`;
 
+          syncViewerScale(scale);
+          updateProgressUI();
+
           if (
             currentPhotoElapsedMs <
             ZOOM_DURATION
@@ -2706,7 +3009,6 @@
 
             if (
               !switching &&
-              !viewerOpen &&
               !playbackPaused &&
               lastMode &&
               !document.hidden
@@ -2752,28 +3054,178 @@
         return active && active.src ? active.src : "";
       };
 
-      const syncViewerToActive = () => {
-        if (!viewerOpen || !viewerImage) return;
+      const updateViewerCount = () => {
+        if (!viewerCount) return;
 
-        const src = activePhotoUrl();
+        const mode =
+          lastMode || currentMode();
+
+        const pool =
+          poolFor(mode);
+
+        let index =
+          currentPhotoPath
+            ? pool.indexOf(
+                currentPhotoPath
+              )
+            : -1;
+
+        if (index < 0) {
+          const all =
+            [...portraitImages, ...landscapeImages];
+
+          const globalIndex =
+            currentPhotoPath
+              ? all.indexOf(
+                  currentPhotoPath
+                )
+              : -1;
+
+          if (globalIndex >= 0) {
+            viewerCount.textContent =
+              `${globalIndex + 1} / ${all.length}`;
+            return;
+          }
+        }
+
+        viewerCount.textContent =
+          `${Math.max(0,index) + 1} / ${Math.max(1,pool.length)}`;
+      };
+
+      const syncViewerToActive = async ({
+        instant = false
+      } = {}) => {
+        if (!viewerOpen) return;
+
+        const src =
+          activePhotoUrl();
+
         if (!src) return;
 
-        viewerImage.classList.add("changing");
+        const mainLayer =
+          layers[activeLayer];
 
-        requestAnimationFrame(() => {
-          viewerImage.src = src;
+        const currentScale =
+          renderedScale(mainLayer);
 
-          const finish = () => {
-            viewerImage.classList.remove("changing");
-          };
+        if (instant) {
+          const active =
+            viewerLayers[viewerActiveLayer];
 
-          if (typeof viewerImage.decode === "function") {
-            viewerImage.decode().then(finish).catch(finish);
-          } else {
-            viewerImage.onload = finish;
-            viewerImage.onerror = finish;
+          const other =
+            viewerLayers[
+              viewerActiveLayer === 0
+                ? 1
+                : 0
+            ];
+
+          if (active) {
+            active.src = src;
+            active.style.transform =
+              `scale(${currentScale})`;
+            active.classList.add(
+              "is-active"
+            );
+            active.classList.remove(
+              "is-outgoing"
+            );
           }
-        });
+
+          if (other) {
+            other.classList.remove(
+              "is-active",
+              "is-outgoing"
+            );
+            other.removeAttribute("src");
+          }
+
+          updateViewerCount();
+          return;
+        }
+
+        const oldIndex =
+          viewerActiveLayer;
+
+        const newIndex =
+          oldIndex === 0 ? 1 : 0;
+
+        const oldLayer =
+          viewerLayers[oldIndex];
+
+        const newLayer =
+          viewerLayers[newIndex];
+
+        if (!oldLayer || !newLayer) {
+          return;
+        }
+
+        newLayer.classList.remove(
+          "is-active",
+          "is-outgoing"
+        );
+
+        newLayer.style.transform =
+          `scale(${BASE_SCALE})`;
+
+        newLayer.src = src;
+
+        try {
+          if (
+            typeof newLayer.decode ===
+            "function"
+          ) {
+            await newLayer.decode();
+          }
+        } catch (_) {}
+
+        if (!viewerOpen) return;
+
+        const frozenOld =
+          getComputedStyle(
+            oldLayer
+          ).transform;
+
+        if (
+          frozenOld &&
+          frozenOld !== "none"
+        ) {
+          oldLayer.style.transform =
+            frozenOld;
+        }
+
+        newLayer.classList.add(
+          "is-active"
+        );
+
+        oldLayer.classList.remove(
+          "is-active"
+        );
+        oldLayer.classList.add(
+          "is-outgoing"
+        );
+
+        viewerActiveLayer =
+          newIndex;
+
+        updateViewerCount();
+
+        window.setTimeout(() => {
+          if (
+            viewerActiveLayer !==
+              oldIndex
+          ) {
+            oldLayer.classList.remove(
+              "is-outgoing"
+            );
+
+            oldLayer.style.transform =
+              "";
+
+            oldLayer.removeAttribute(
+              "src"
+            );
+          }
+        }, CROSSFADE_MS + 260);
       };
 
       const crossfadeTo = async (path, orientationChange = false) => {
@@ -2875,15 +3327,25 @@
           /*
             真正換到新照片才開始新的 5 秒總播放時間。
           */
+          currentPhotoPath = path;
           currentPhotoElapsedMs = 0;
+          updateProgressUI();
 
           if (viewerOpen) {
-            syncViewerToActive();
-          } else if (!playbackPaused) {
+            syncViewerToActive({
+              instant:false
+            });
+          }
+
+          if (!playbackPaused) {
             startZoom(newLayer);
           } else {
             newLayer.style.transform =
               `scale(${BASE_SCALE})`;
+
+            syncViewerScale(
+              BASE_SCALE
+            );
           }
         });
 
@@ -2967,43 +3429,103 @@
         }, 140);
       };
 
-      const openViewer = () => {
+      const openViewer = async () => {
         if (
-          !isMobileDevice() ||
           !viewer ||
-          !viewerImage
+          !viewerLayers[0]
         ) {
           return;
         }
 
-        const src = activePhotoUrl();
+        const src =
+          activePhotoUrl();
+
         if (!src) return;
 
         viewerOpen = true;
-        stopZoom();
 
-        viewerImage.src = src;
-        viewer.classList.add("open");
-        viewer.setAttribute("aria-hidden", "false");
+        document.body.classList.add(
+          "viewer-open"
+        );
+
+        viewer.classList.add(
+          "open"
+        );
+
+        viewer.setAttribute(
+          "aria-hidden",
+          "false"
+        );
+
+        await syncViewerToActive({
+          instant:true
+        });
+
+        updateViewerCount();
+        updateProgressUI();
+
+        /*
+          使用者點擊進入時，支援 Fullscreen API 的瀏覽器
+          直接進真正裝置全螢幕；iPhone Safari 等不支援時，
+          固定式 overlay 仍會完整覆蓋可視畫面。
+        */
+        try {
+          if (
+            !document.fullscreenElement &&
+            viewer.requestFullscreen
+          ) {
+            await viewer.requestFullscreen({
+              navigationUI:"hide"
+            });
+
+            nativeViewerFullscreen =
+              document.fullscreenElement ===
+              viewer;
+          }
+        } catch (_) {
+          nativeViewerFullscreen =
+            false;
+        }
       };
 
-      const closeViewer = () => {
-        if (!viewerOpen || !viewer) return;
+      const closeViewer = async ({
+        exitNative = true
+      } = {}) => {
+        if (
+          !viewerOpen ||
+          !viewer
+        ) {
+          return;
+        }
 
         viewerOpen = false;
-        viewer.classList.remove("open");
-        viewer.setAttribute("aria-hidden", "true");
 
-        const active = layers[activeLayer];
+        viewer.classList.remove(
+          "open"
+        );
+
+        viewer.setAttribute(
+          "aria-hidden",
+          "true"
+        );
+
+        document.body.classList.remove(
+          "viewer-open"
+        );
 
         if (
-          active &&
-          active.classList.contains("is-active") &&
-          !document.hidden &&
-          !playbackPaused
+          exitNative &&
+          document.fullscreenElement ===
+            viewer &&
+          document.exitFullscreen
         ) {
-          startRateBasedZoom(active, true);
+          try {
+            await document.exitFullscreen();
+          } catch (_) {}
         }
+
+        nativeViewerFullscreen =
+          false;
       };
 
       /*
@@ -3205,7 +3727,6 @@
             const active = layers[activeLayer];
 
             if (
-              !viewerOpen &&
               !playbackPaused &&
               active &&
               active.classList.contains("is-active")
@@ -3233,7 +3754,6 @@
             const active = layers[activeLayer];
 
             if (
-              !viewerOpen &&
               !playbackPaused &&
               active &&
               active.classList.contains("is-active")
@@ -3284,6 +3804,20 @@
           desktopPlaybackToggle.title =
             title;
         }
+
+        if (viewerPlaybackToggle) {
+          viewerPlaybackToggle.setAttribute(
+            "aria-pressed",
+            pressed
+          );
+
+          viewerPlaybackToggle.setAttribute(
+            "aria-label",
+            label
+          );
+        }
+
+        updateProgressUI();
       };
 
       const setPlaybackPaused = (
@@ -3312,7 +3846,6 @@
           active.classList.contains(
             "is-active"
           ) &&
-          !viewerOpen &&
           !document.hidden
         ) {
           /*
@@ -3328,6 +3861,7 @@
       };
 
       updatePlaybackButton();
+      updateProgressUI();
 
       playbackToggle?.addEventListener(
         "click",
@@ -3381,6 +3915,161 @@
         }
       );
 
+      viewerPlaybackToggle?.addEventListener(
+        "click",
+        (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          setPlaybackPaused(
+            !playbackPaused
+          );
+        }
+      );
+
+      viewerPrev?.addEventListener(
+        "click",
+        (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          showNextForMode(
+            lastMode || currentMode(),
+            false,
+            -1
+          );
+        }
+      );
+
+      viewerNext?.addEventListener(
+        "click",
+        (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          showNextForMode(
+            lastMode || currentMode(),
+            false,
+            1
+          );
+        }
+      );
+
+      viewerClose?.addEventListener(
+        "click",
+        (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          closeViewer();
+        }
+      );
+
+      document.addEventListener(
+        "fullscreenchange",
+        () => {
+          if (
+            nativeViewerFullscreen &&
+            viewerOpen &&
+            !document.fullscreenElement
+          ) {
+            nativeViewerFullscreen = false;
+            closeViewer({
+              exitNative:false
+            });
+          }
+        }
+      );
+
+      if (
+        root.classList.contains(
+          "device-desktop"
+        ) &&
+        hero
+      ) {
+        hero.style.cursor =
+          "zoom-in";
+
+        hero.addEventListener(
+          "click",
+          (event) => {
+            if (
+              event.target instanceof Element &&
+              event.target.closest(
+                ".desktop-photo-controls"
+              )
+            ) {
+              return;
+            }
+
+            openViewer();
+          }
+        );
+
+        document.addEventListener(
+          "keydown",
+          (event) => {
+            const target =
+              event.target;
+
+            const interactive =
+              target instanceof Element &&
+              target.closest(
+                "input,textarea,select,[contenteditable='true']"
+              );
+
+            if (interactive) return;
+
+            if (
+              event.key === "ArrowLeft"
+            ) {
+              event.preventDefault();
+
+              showNextForMode(
+                lastMode || currentMode(),
+                false,
+                -1
+              );
+
+              return;
+            }
+
+            if (
+              event.key === "ArrowRight"
+            ) {
+              event.preventDefault();
+
+              showNextForMode(
+                lastMode || currentMode(),
+                false,
+                1
+              );
+
+              return;
+            }
+
+            if (
+              event.code === "Space"
+            ) {
+              event.preventDefault();
+
+              setPlaybackPaused(
+                !playbackPaused
+              );
+
+              return;
+            }
+
+            if (
+              event.key === "Escape" &&
+              viewerOpen
+            ) {
+              event.preventDefault();
+              closeViewer();
+            }
+          }
+        );
+      }
+
       if (isMobileDevice()) {
         bindSwipeTarget(hero, {
           tapToOpen:true
@@ -3390,23 +4079,6 @@
           tapToOpen:false,
           stopPropagation:true
         });
-
-        viewerClose?.addEventListener(
-          "click",
-          closeViewer
-        );
-
-        viewer?.addEventListener(
-          "click",
-          (event) => {
-            if (
-              event.target === viewer ||
-              event.target === viewerStage
-            ) {
-              closeViewer();
-            }
-          }
-        );
 
         document.addEventListener(
           "keydown",
