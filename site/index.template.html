@@ -1450,6 +1450,13 @@
       justify-content:space-between;
 
       pointer-events:none;
+
+      opacity:1;
+      transform:translateY(0);
+
+      transition:
+        opacity .42s ease,
+        transform .42s cubic-bezier(.22,.78,.24,1);
     }
 
     .photo-viewer-count{
@@ -1534,6 +1541,40 @@
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,.07),
         0 8px 28px rgba(0,0,0,.24);
+
+      opacity:1;
+
+      transition:
+        opacity .42s ease,
+        transform .42s cubic-bezier(.22,.78,.24,1);
+    }
+
+    /*
+      類似 YouTube：
+      進入全螢幕 2 秒後，上方張數/關閉與下方控制列一起淡出。
+      照片本身的 5 秒計時、慢放大、漸變完全不受影響。
+    */
+    .photo-viewer.controls-hidden{
+      cursor:none;
+    }
+
+    .photo-viewer.controls-hidden .photo-viewer-topbar{
+      opacity:0;
+      transform:translateY(-10px);
+      pointer-events:none;
+    }
+
+    .photo-viewer.controls-hidden .photo-viewer-controls{
+      opacity:0;
+      transform:translate(-50%,12px);
+      pointer-events:none;
+    }
+
+    /*
+      手機沒有滑鼠游標，避免 cursor 規則造成任何差異。
+    */
+    .device-mobile .photo-viewer.controls-hidden{
+      cursor:auto;
     }
 
     .viewer-control{
@@ -1692,7 +1733,9 @@
     @media (prefers-reduced-motion:reduce){
       .photo-viewer,
       .photo-viewer-stage img,
-      .copy-row{
+      .copy-row,
+      .photo-viewer-topbar,
+      .photo-viewer-controls{
         transition:none!important;
       }
     }
@@ -2540,10 +2583,71 @@
       let playbackPaused = false;
 
       /*
+        全螢幕控制介面：
+        顯示後 2 秒沒有操作就自動淡出。
+      */
+      let viewerUiHideTimer = 0;
+      const VIEWER_UI_HIDE_DELAY = 2000;
+
+      /*
         當前照片真正「播放中」的累積時間。
         暫停、進全螢幕都不增加；恢復後從原本秒數繼續。
       */
       let currentPhotoElapsedMs = 0;
+
+      const clearViewerUiTimer = () => {
+        clearTimeout(viewerUiHideTimer);
+        viewerUiHideTimer = 0;
+      };
+
+      const hideViewerUi = () => {
+        if (
+          !viewerOpen ||
+          !viewer
+        ) {
+          return;
+        }
+
+        viewer.classList.add(
+          "controls-hidden"
+        );
+      };
+
+      const scheduleViewerUiHide = () => {
+        clearViewerUiTimer();
+
+        if (
+          !viewerOpen ||
+          !viewer
+        ) {
+          return;
+        }
+
+        viewerUiHideTimer =
+          window.setTimeout(
+            hideViewerUi,
+            VIEWER_UI_HIDE_DELAY
+          );
+      };
+
+      const showViewerUi = ({
+        restartTimer = true
+      } = {}) => {
+        if (
+          !viewerOpen ||
+          !viewer
+        ) {
+          return;
+        }
+
+        viewer.classList.remove(
+          "controls-hidden"
+        );
+
+        if (restartTimer) {
+          scheduleViewerUiHide();
+        }
+      };
 
       const progressButtons = () => [
         playbackToggle,
@@ -3457,6 +3561,15 @@
           "false"
         );
 
+        /*
+          每次進入全螢幕都先顯示控制，
+          然後從此刻開始算 2 秒。
+        */
+        viewer.classList.remove(
+          "controls-hidden"
+        );
+        scheduleViewerUiHide();
+
         await syncViewerToActive({
           instant:true
         });
@@ -3507,6 +3620,11 @@
         viewer.setAttribute(
           "aria-hidden",
           "true"
+        );
+
+        clearViewerUiTimer();
+        viewer.classList.remove(
+          "controls-hidden"
         );
 
         document.body.classList.remove(
@@ -3624,6 +3742,10 @@
             ) {
               if (stopPropagation) {
                 event.stopPropagation();
+              }
+
+              if (viewerOpen) {
+                showViewerUi();
               }
 
               showNextForMode(
@@ -3955,12 +4077,85 @@
         }
       );
 
+      /*
+        點任何全螢幕控制項，都視為使用者仍在操作：
+        先顯示控制，再重新計時 2 秒。
+      */
+      viewer?.addEventListener(
+        "pointerdown",
+        (event) => {
+          if (
+            event.target instanceof Element &&
+            event.target.closest(
+              ".photo-viewer-topbar, .photo-viewer-controls"
+            )
+          ) {
+            showViewerUi();
+          }
+        },
+        true
+      );
+
       viewerClose?.addEventListener(
         "click",
         (event) => {
           event.preventDefault();
           event.stopPropagation();
           closeViewer();
+        }
+      );
+
+      /*
+        桌面版：滑鼠只要移回全螢幕畫面，就像 YouTube 一樣
+        立即把控制列叫回來，停止移動 2 秒後再淡出。
+      */
+      viewer?.addEventListener(
+        "mousemove",
+        () => {
+          if (!viewerOpen) return;
+          showViewerUi();
+        },
+        {passive:true}
+      );
+
+      /*
+        手機版：控制列已隱藏時，輕點桌布一次只負責叫回 UI，
+        不會觸發其他操作；顯示後再過 2 秒自動淡出。
+      */
+      viewerStage?.addEventListener(
+        "click",
+        (event) => {
+          if (
+            !viewerOpen ||
+            !viewer
+          ) {
+            return;
+          }
+
+          if (
+            event.target instanceof Element &&
+            event.target.closest(
+              ".photo-viewer-topbar, .photo-viewer-controls"
+            )
+          ) {
+            return;
+          }
+
+          if (
+            viewer.classList.contains(
+              "controls-hidden"
+            )
+          ) {
+            event.preventDefault();
+            event.stopPropagation();
+            showViewerUi();
+          } else {
+            /*
+              UI 本來就顯示時，點一下桌布不做動作，
+              只重置 2 秒倒數，避免誤操作。
+            */
+            scheduleViewerUiHide();
+          }
         }
       );
 
@@ -3973,6 +4168,8 @@
             !document.fullscreenElement
           ) {
             nativeViewerFullscreen = false;
+            clearViewerUiTimer();
+
             closeViewer({
               exitNative:false
             });
@@ -4024,6 +4221,10 @@
             ) {
               event.preventDefault();
 
+              if (viewerOpen) {
+                showViewerUi();
+              }
+
               showNextForMode(
                 lastMode || currentMode(),
                 false,
@@ -4038,6 +4239,10 @@
             ) {
               event.preventDefault();
 
+              if (viewerOpen) {
+                showViewerUi();
+              }
+
               showNextForMode(
                 lastMode || currentMode(),
                 false,
@@ -4051,6 +4256,10 @@
               event.code === "Space"
             ) {
               event.preventDefault();
+
+              if (viewerOpen) {
+                showViewerUi();
+              }
 
               setPlaybackPaused(
                 !playbackPaused
