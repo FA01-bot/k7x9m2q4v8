@@ -79,10 +79,6 @@
             <span>複製電話</span>
           </button>
         </div>
-
-        <p class="contact-hint" id="contact-hint">
-          加入聯絡人時會交由手機系統開啟聯絡人卡片。
-        </p>
       </div>
 
       <div class="qr-view" id="qr-view" hidden>
@@ -1276,21 +1272,6 @@
       stroke:none;
     }
 
-
-    .contact-hint{
-      margin:12px 6px 0;
-      color:rgba(255,255,255,.46);
-      font-size:.66rem;
-      line-height:1.45;
-      text-align:center;
-    }
-
-    @media (orientation:landscape) and (max-height:620px){
-      .contact-hint{
-        display:none;
-      }
-    }
-
     .qr-view[hidden],
     .more-main[hidden]{
       display:none!important;
@@ -2123,7 +2104,6 @@
       const copyLinkBtn = document.getElementById("copy-link");
       const copyPhoneBtn = document.getElementById("copy-phone");
       const addContactBtn = document.getElementById("add-contact");
-      const contactHint = document.getElementById("contact-hint");
       const toast = document.getElementById("copy-toast");
 
       if (!overlay || !trigger) return;
@@ -2234,15 +2214,6 @@
         if (/Android/i.test(ua)) return "android";
         return "mobile";
       })();
-
-      if (contactHint) {
-        contactHint.textContent =
-          mobilePlatform === "ios"
-            ? "點「加入聯絡人」後，iPhone 會開啟 vCard，最後由你確認新增。"
-            : mobilePlatform === "android"
-              ? "點「加入聯絡人」後，Android 會交給系統或聯絡人 App 開啟。"
-              : "加入聯絡人時會交由手機系統開啟聯絡人卡片。";
-      }
 
       addContactBtn?.addEventListener("click",() => {
         /*
