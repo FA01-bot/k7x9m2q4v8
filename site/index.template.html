@@ -188,8 +188,9 @@
       display:grid;
       grid-template-columns:repeat(4,minmax(0,1fr));
       align-items:stretch;
-      gap:clamp(7px,2vw,10px);
-      margin:0 auto clamp(8px,1.35vh,14px);
+      column-gap:clamp(7px,2vw,10px);
+      row-gap:clamp(8px,1.35vh,14px);
+      margin:0 auto;
     }
 
     .quick{
@@ -227,6 +228,39 @@
       display:block;
       flex:0 0 auto;
       fill:currentColor;
+    }
+
+
+    .brand-logo{
+      display:block;
+      flex:0 0 auto;
+      color:var(--pink);
+      overflow:visible;
+    }
+
+    /*
+      品牌圖示統一用同一個視覺框。
+      Gmail 略縮、LINE 略放大，讓肉眼大小跟 Discord / Phone 接近。
+    */
+    .quick svg.brand-gmail{
+      width:clamp(24px,4.35vh,29px);
+      height:clamp(24px,4.35vh,29px);
+      fill:initial;
+    }
+
+    .quick svg.brand-line{
+      width:clamp(29px,5.0vh,34px);
+      height:clamp(29px,5.0vh,34px);
+      fill:initial;
+    }
+
+    .quick svg.brand-gmail{
+      transform:scale(.90);
+      transform-origin:center;
+    }
+
+    .quick svg.brand-line{
+      transform:none;
     }
 
     .quick-label{
@@ -278,6 +312,7 @@
     }
 
     .instagram{
+      grid-column:1 / -1;
       min-height:clamp(39px,5.25vh,51px);
       border-radius:clamp(14px,3vw,20px);
       display:flex;
@@ -320,7 +355,7 @@
     /* 極矮裝置：再壓縮文字與功能區，優先保證整張卡完整出現 */
     @media (max-height:620px){
       .contact-panel{padding:6px 12px 7px}
-      .quick-actions{gap:6px;margin-bottom:6px}
+      .quick-actions{gap:6px;margin-bottom:0}
       .quick{min-height:40px;padding:5px 3px;border-radius:12px}
       .quick svg{width:21px;height:21px}
       .quick-label{display:none}
@@ -406,8 +441,7 @@
           LINE / Phone 會和 Instagram 一起參與同一個 grid。
         */
         display:grid;
-        grid-template-rows:repeat(5,minmax(0,1fr));
-        gap:clamp(8px,1.35vh,12px);
+        grid-template-rows:minmax(0,1fr);
 
         padding-block:clamp(10px,1.8vh,16px);
         padding-inline:0;
@@ -417,24 +451,24 @@
       }
 
       .quick-actions{
-        display:contents;
-      }
-
-      /*
-        重要：橫向 5 等分時 divider 不能參與 grid。
-        DOM 裡它位於 Phone 與 Instagram 之間；
-        如果不隱藏，實際會變成 6 個 grid item，
-        第 5 格被空 divider 吃掉，IG 就會被擠到最底下。
-      */
-      .divider{
-        display:none;
-      }
-
-      .quick{
         width:calc(100% - (var(--toolbar-gap-x) * 2));
         height:100%;
         min-height:0;
         justify-self:center;
+
+        display:grid;
+        grid-template-columns:minmax(0,1fr);
+        grid-template-rows:repeat(5,minmax(0,1fr));
+
+        gap:clamp(8px,1.35vh,12px);
+        margin:0;
+      }
+
+      .quick{
+        width:100%;
+        height:100%;
+        min-height:0;
+        justify-self:stretch;
         align-self:stretch;
 
         display:flex;
@@ -466,10 +500,11 @@
           和上面四顆完全相同的外框尺寸；
           唯一差別是保留粉紫漸層，讓 IG 視覺上突出。
         */
-        width:calc(100% - (var(--toolbar-gap-x) * 2));
+        grid-column:auto;
+        width:100%;
         height:100%;
         min-height:0;
-        justify-self:center;
+        justify-self:stretch;
         align-self:stretch;
 
         display:flex;
@@ -574,6 +609,90 @@
       }
     }
 
+
+    /*
+      手機橫向：
+      之前 max-height:620 的通用規則會把標籤全部隱藏，
+      而 display:contents 在部分 Android 瀏覽器也會讓 IG 高度異常。
+      這裡強制恢復完整五等分與文字。
+    */
+    @media (orientation:landscape) and (max-height:620px){
+      .card{
+        grid-template-columns:minmax(0,1fr) clamp(132px,18vw,154px);
+      }
+
+      .contact-panel{
+        padding-block:7px;
+      }
+
+      .quick-actions{
+        gap:5px;
+      }
+
+      .quick,
+      .instagram{
+        min-height:0;
+        padding:3px 2px;
+        border-radius:11px;
+      }
+
+      .quick-label,
+      .instagram span{
+        display:block;
+        font-size:clamp(.54rem,2.25vh,.67rem);
+        line-height:1;
+      }
+
+      .quick svg:not(.brand-gmail):not(.brand-line),
+      .instagram svg{
+        width:clamp(20px,5.1vh,24px);
+        height:clamp(20px,5.1vh,24px);
+      }
+
+      .quick svg.brand-gmail{
+        width:clamp(23px,5.5vh,27px);
+        height:clamp(23px,5.5vh,27px);
+      }
+
+      .quick svg.brand-line{
+        width:clamp(28px,6.2vh,33px);
+        height:clamp(28px,6.2vh,33px);
+      }
+
+      .quick svg.brand-gmail{
+        transform:scale(.90);
+      }
+
+      .quick svg.brand-line{
+        transform:none;
+      }
+
+      .intro{
+        bottom:10px;
+      }
+
+      .name{
+        font-size:clamp(1.25rem,5.9vh,1.75rem);
+        margin-bottom:4px;
+      }
+
+      .bio{
+        font-size:clamp(.58rem,2.15vh,.72rem);
+        line-height:1.38;
+      }
+    }
+
+    /* 只有極端矮的橫向視窗才隱藏文字。 */
+    @media (orientation:landscape) and (max-height:360px){
+      .quick-label,
+      .instagram span{
+        display:none;
+      }
+
+      .card{
+        grid-template-columns:minmax(0,1fr) clamp(92px,16vw,112px);
+      }
+    }
 
 
     @keyframes photoChange{
@@ -821,8 +940,8 @@
     <section class="contact-panel" aria-label="聯絡方式">
       <div class="quick-actions">
         <a class="quick" href="mailto:__CARD_EMAIL__" aria-label="寄 Email">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M2.5 5.5A2.5 2.5 0 0 1 5 3h14a2.5 2.5 0 0 1 2.5 2.5v13A2.5 2.5 0 0 1 19 21H5a2.5 2.5 0 0 1-2.5-2.5v-13Zm2.7-.5L12 10.05 18.8 5H5.2Zm14.3 2.05-6.6 4.9a1.5 1.5 0 0 1-1.8 0L4.5 7.05V18.5c0 .28.22.5.5.5h14a.5.5 0 0 0 .5-.5V7.05Z"/>
+          <svg class="brand-logo brand-gmail" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M2.4 5.1A1.4 1.4 0 0 1 4.5 4L12 9.55 19.5 4a1.4 1.4 0 0 1 2.1 1.1v13.4A1.5 1.5 0 0 1 20.1 20H18V9.25l-6 4.45-6-4.45V20H3.9a1.5 1.5 0 0 1-1.5-1.5V5.1Z"/>
           </svg>
           <span class="quick-label">Email</span><span class="sr-only">Email</span>
         </a>
@@ -835,7 +954,17 @@
         </a>
 
         <a class="quick" href="__CARD_LINE_URL__" target="_blank" rel="noopener" aria-label="LINE">
-          <span class="line-bubble" aria-hidden="true">LINE</span>
+          <svg class="brand-logo brand-line" viewBox="0 0 36 36" aria-hidden="true">
+            <rect x="3.5" y="3.5" width="29" height="24" rx="12" fill="currentColor"/>
+            <path d="M18.5 25.6 16.6 33l7.4-6.7Z" fill="currentColor"/>
+            <text x="18" y="18.9"
+                  text-anchor="middle"
+                  font-family="Arial, sans-serif"
+                  font-size="7.4"
+                  font-weight="900"
+                  letter-spacing="-.1"
+                  fill="#2c3142">LINE</text>
+          </svg>
           <span class="quick-label">LINE</span><span class="sr-only">LINE</span>
         </a>
 
@@ -845,18 +974,16 @@
           </svg>
           <span class="quick-label">Phone</span><span class="sr-only">電話</span>
         </a>
+
+        <a class="instagram" href="__CARD_IG_URL__" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+            <circle cx="12" cy="12" r="4.2"></circle>
+            <circle cx="17.4" cy="6.7" r="1" fill="currentColor" stroke="none"></circle>
+          </svg>
+          <span>Instagram</span>
+        </a>
       </div>
-
-      <div class="divider"></div>
-
-      <a class="instagram" href="__CARD_IG_URL__" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="3" y="3" width="18" height="18" rx="5"></rect>
-          <circle cx="12" cy="12" r="4.2"></circle>
-          <circle cx="17.4" cy="6.7" r="1" fill="currentColor" stroke="none"></circle>
-        </svg>
-        <span>Instagram</span>
-      </a>
     </section>
   </main>
   </div>
