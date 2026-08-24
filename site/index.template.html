@@ -1194,33 +1194,6 @@
       text-align:left;
     }
 
-    .qr-card{
-      width:min(76vw,300px);
-      aspect-ratio:1;
-      margin:10px auto 14px;
-      padding:14px;
-
-      border-radius:24px;
-      background:#fff;
-      box-shadow:0 14px 34px rgba(0,0,0,.22);
-    }
-
-    .qr-card img{
-      display:block;
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      image-rendering:auto;
-    }
-
-    .qr-tip{
-      margin:0 8px 4px;
-      color:rgba(255,255,255,.68);
-      font-size:.78rem;
-      line-height:1.55;
-      text-align:center;
-    }
-
     .copy-toast{
       position:fixed;
       left:50%;
@@ -1285,13 +1258,6 @@
       .more-action svg{
         width:23px;
         height:23px;
-      }
-
-      .qr-card{
-        width:min(42vh,240px);
-        margin:4px auto 8px;
-        padding:10px;
-        border-radius:18px;
       }
     }
 
@@ -2159,24 +2125,6 @@
             <span>加入聯絡人</span>
           </button>
 
-          <button class="more-action" id="share-card" type="button">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="18" cy="5" r="2.2"></circle>
-              <circle cx="6" cy="12" r="2.2"></circle>
-              <circle cx="18" cy="19" r="2.2"></circle>
-              <path d="m8 11 8-4.7M8 13l8 4.7"/>
-            </svg>
-            <span>分享名片</span>
-          </button>
-
-          <button class="more-action" id="show-qr" type="button">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/>
-              <path d="M14 14h2v2h-2zM18 14h2v4h-2zM14 18h4v2h-4z"/>
-            </svg>
-            <span>QR Code</span>
-          </button>
-
           <button class="more-action" id="copy-link" type="button">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M9.8 14.2 14.2 9.8M7.2 16.8l-1.1 1.1a3.5 3.5 0 0 1-5-5l3.3-3.3a3.5 3.5 0 0 1 5 0M16.8 7.2l1.1-1.1a3.5 3.5 0 1 1 5 5l-3.3 3.3a3.5 3.5 0 0 1-5 0"/>
@@ -2193,31 +2141,6 @@
           </button>
         </div>
       </div>
-
-      <div class="qr-view" id="qr-view" hidden>
-        <header class="more-head">
-          <button class="qr-back" id="qr-back" type="button" aria-label="返回">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="m15 5-7 7 7 7"/>
-            </svg>
-          </button>
-          <div class="qr-head-copy">
-            <div class="more-kicker">SHARE</div>
-            <h2>掃描名片</h2>
-          </div>
-          <button class="more-close" id="qr-close" type="button" aria-label="關閉">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6.7 6.7 17.3 17.3M17.3 6.7 6.7 17.3"/>
-            </svg>
-          </button>
-        </header>
-
-        <div class="qr-card">
-          <img src="qr.png" alt="此名片網址的 QR Code">
-        </div>
-        <p class="qr-tip">用另一台手機掃描即可開啟這張名片。</p>
-      </div>
-
       <div class="copy-view" id="copy-view" hidden>
         <header class="more-head">
           <button class="qr-back" id="copy-back" type="button" aria-label="返回">
@@ -3511,18 +3434,6 @@
       const main =
         document.getElementById("more-main");
 
-      const qrView =
-        document.getElementById("qr-view");
-
-      const qrClose =
-        document.getElementById("qr-close");
-
-      const qrBack =
-        document.getElementById("qr-back");
-
-      const showQr =
-        document.getElementById("show-qr");
-
       const copyView =
         document.getElementById("copy-view");
 
@@ -3534,9 +3445,6 @@
 
       const copyClose =
         document.getElementById("copy-close");
-
-      const shareBtn =
-        document.getElementById("share-card");
 
       const copyLinkBtn =
         document.getElementById("copy-link");
@@ -3609,7 +3517,6 @@
 
       const showMain = () => {
         main.hidden = false;
-        qrView.hidden = true;
         copyView.hidden = true;
       };
 
@@ -3637,16 +3544,6 @@
         );
 
         window.setTimeout(showMain, 360);
-      };
-
-      const openQr = () => {
-        main.hidden = true;
-        copyView.hidden = true;
-        qrView.hidden = false;
-
-        qrBack?.focus({
-          preventScroll:true
-        });
       };
 
       const openCopy = () => {
@@ -3684,29 +3581,14 @@
         closeSheet
       );
 
-      qrClose?.addEventListener(
-        "click",
-        closeSheet
-      );
-
       copyClose?.addEventListener(
         "click",
         closeSheet
       );
 
-      qrBack?.addEventListener(
-        "click",
-        () => backToMain(showQr)
-      );
-
       copyBack?.addEventListener(
         "click",
         () => backToMain(copyDataBtn)
-      );
-
-      showQr?.addEventListener(
-        "click",
-        openQr
       );
 
       copyDataBtn?.addEventListener(
@@ -3737,17 +3619,6 @@
           );
         }
       );
-
-      shareBtn?.addEventListener(
-        "click",
-        async () => {
-          if (navigator.share) {
-            try {
-              await navigator.share({
-                title:document.title,
-                text:"__CARD_NAME__ 的數位名片",
-                url:location.href
-              });
 
               return;
             } catch (error) {
@@ -3919,11 +3790,6 @@
 
           if (!copyView.hidden) {
             backToMain(copyDataBtn);
-            return;
-          }
-
-          if (!qrView.hidden) {
-            backToMain(showQr);
             return;
           }
 
