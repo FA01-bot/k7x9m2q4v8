@@ -11,106 +11,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>__CARD_NAME__｜個人名片</title>
-
-
-  <div class="more-overlay" id="more-overlay" aria-hidden="true">
-    <button class="more-backdrop" id="more-backdrop" type="button" aria-label="關閉更多選單"></button>
-
-    <section class="more-sheet" role="dialog" aria-modal="true" aria-labelledby="more-title">
-      <div class="more-main" id="more-main">
-        <header class="more-head">
-          <div>
-            <div class="more-kicker">DIGITAL CARD</div>
-            <h2 id="more-title">更多</h2>
-          </div>
-          <button class="more-close" id="more-close" type="button" aria-label="關閉">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6.7 6.7 17.3 17.3M17.3 6.7 6.7 17.3"/>
-            </svg>
-          </button>
-        </header>
-
-        <div class="more-actions">
-          <a class="more-action" href="tel:__CARD_PHONE__">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6.62 10.79a15.47 15.47 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.58a1 1 0 0 1-.25 1.02l-2.2 2.19Z"/>
-            </svg>
-            <span>撥打電話</span>
-          </a>
-
-          <button class="more-action" id="add-contact" type="button">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="9" cy="8" r="3"></circle>
-              <path d="M3.8 18.8c.4-3.6 2.4-5.5 5.2-5.5s4.8 1.9 5.2 5.5M18 7v6M15 10h6"/>
-            </svg>
-            <span>加入聯絡人</span>
-          </button>
-
-          <button class="more-action" id="share-card" type="button">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="18" cy="5" r="2.2"></circle>
-              <circle cx="6" cy="12" r="2.2"></circle>
-              <circle cx="18" cy="19" r="2.2"></circle>
-              <path d="m8 11 8-4.7M8 13l8 4.7"/>
-            </svg>
-            <span>分享名片</span>
-          </button>
-
-          <button class="more-action" id="show-qr" type="button">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/>
-              <path d="M14 14h2v2h-2zM18 14h2v4h-2zM14 18h4v2h-4z"/>
-            </svg>
-            <span>QR Code</span>
-          </button>
-
-          <button class="more-action" id="copy-link" type="button">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M9.8 14.2 14.2 9.8M7.2 16.8l-1.1 1.1a3.5 3.5 0 0 1-5-5l3.3-3.3a3.5 3.5 0 0 1 5 0M16.8 7.2l1.1-1.1a3.5 3.5 0 1 1 5 5l-3.3 3.3a3.5 3.5 0 0 1-5 0"/>
-            </svg>
-            <span>複製網址</span>
-          </button>
-
-          <button class="more-action" id="copy-phone" type="button">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="6.5" y="3" width="11" height="18" rx="2.2"></rect>
-              <path d="M10 6h4M10.5 18h3"/>
-            </svg>
-            <span>複製電話</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="qr-view" id="qr-view" hidden>
-        <header class="more-head">
-          <button class="qr-back" id="qr-back" type="button" aria-label="返回">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="m15 5-7 7 7 7"/>
-            </svg>
-          </button>
-          <div class="qr-head-copy">
-            <div class="more-kicker">SHARE</div>
-            <h2>掃描名片</h2>
-          </div>
-          <button class="more-close" id="qr-close" type="button" aria-label="關閉">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6.7 6.7 17.3 17.3M17.3 6.7 6.7 17.3"/>
-            </svg>
-          </button>
-        </header>
-
-        <div class="qr-card">
-          <img src="qr.png" alt="此名片網址的 QR Code">
-        </div>
-        <p class="qr-tip">用另一台手機掃描即可開啟這張名片。</p>
-      </div>
-    </section>
-  </div>
-
-  <div class="copy-toast" id="copy-toast" role="status" aria-live="polite"></div>
-
-
-  <script>
+<script>
     (() => {
       const uaData = navigator.userAgentData;
       const ua = navigator.userAgent || "";
@@ -1387,6 +1288,220 @@
     }
 
 
+
+    /* ---------------------------------------------------------------
+       複製資料子頁
+       --------------------------------------------------------------- */
+    .copy-view[hidden]{
+      display:none!important;
+    }
+
+    .copy-view .more-head{
+      grid-template-columns:auto minmax(0,1fr) auto;
+    }
+
+    .copy-list{
+      display:grid;
+      gap:9px;
+    }
+
+    .copy-row{
+      appearance:none;
+      width:100%;
+      min-height:64px;
+      padding:10px 12px;
+
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:17px;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+
+      background:rgba(255,255,255,.032);
+      color:#fff;
+      font:inherit;
+      text-align:left;
+
+      -webkit-tap-highlight-color:transparent;
+      transition:transform .14s ease,background .14s ease,border-color .14s ease;
+    }
+
+    .copy-row:active{
+      transform:scale(.985);
+      background:rgba(255,255,255,.07);
+      border-color:rgba(255,255,255,.13);
+    }
+
+    .copy-meta{
+      min-width:0;
+      display:grid;
+      gap:3px;
+    }
+
+    .copy-meta strong{
+      font-size:.78rem;
+      font-weight:750;
+      color:#fff;
+    }
+
+    .copy-meta > span{
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+
+      color:rgba(255,255,255,.56);
+      font-size:.69rem;
+    }
+
+    .copy-state{
+      flex:0 0 auto;
+      min-width:50px;
+      padding:6px 9px;
+
+      border-radius:999px;
+      background:rgba(255,179,193,.10);
+      color:var(--pink);
+
+      font-size:.66rem;
+      font-weight:750;
+      text-align:center;
+    }
+
+    .copy-row.copied .copy-state{
+      background:rgba(255,179,193,.18);
+      color:#fff;
+    }
+
+    /* ---------------------------------------------------------------
+       手機照片：左右滑切換、點擊全螢幕
+       電腦版不啟用這些事件。
+       --------------------------------------------------------------- */
+    .device-mobile .hero{
+      touch-action:pan-y;
+    }
+
+    .photo-viewer{
+      position:fixed;
+      inset:0;
+      z-index:1200;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      padding:
+        max(10px,env(safe-area-inset-top))
+        max(10px,env(safe-area-inset-right))
+        max(10px,env(safe-area-inset-bottom))
+        max(10px,env(safe-area-inset-left));
+
+      background:rgba(6,8,15,.94);
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none;
+
+      transition:opacity .28s ease,visibility .28s ease;
+    }
+
+    .photo-viewer.open{
+      opacity:1;
+      visibility:visible;
+      pointer-events:auto;
+    }
+
+    .photo-viewer-stage{
+      position:absolute;
+      inset:0;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      padding:
+        max(48px,calc(env(safe-area-inset-top) + 40px))
+        max(12px,env(safe-area-inset-right))
+        max(24px,env(safe-area-inset-bottom))
+        max(12px,env(safe-area-inset-left));
+
+      touch-action:none;
+    }
+
+    .photo-viewer-stage img{
+      display:block;
+      width:100%;
+      height:100%;
+      object-fit:contain;
+
+      opacity:1;
+      transform:scale(1);
+      transition:opacity .24s ease,transform .24s ease;
+      user-select:none;
+      -webkit-user-drag:none;
+    }
+
+    .photo-viewer-stage img.changing{
+      opacity:.34;
+      transform:scale(.985);
+    }
+
+    .photo-viewer-close{
+      position:absolute;
+      top:max(14px,env(safe-area-inset-top));
+      right:max(14px,env(safe-area-inset-right));
+      z-index:2;
+
+      width:43px;
+      height:43px;
+
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:15px;
+
+      display:grid;
+      place-items:center;
+
+      background:rgba(32,38,56,.72);
+      color:#fff;
+
+      backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px);
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .photo-viewer-close svg{
+      width:21px;
+      height:21px;
+      fill:none;
+      stroke:currentColor;
+      stroke-width:2;
+      stroke-linecap:round;
+    }
+
+    @media (orientation:landscape) and (max-height:620px){
+      .copy-list{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:8px;
+      }
+
+      .copy-row{
+        min-height:57px;
+        padding:8px 10px;
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      .photo-viewer,
+      .photo-viewer-stage img,
+      .copy-row{
+        transition:none!important;
+      }
+    }
+
+
     /* 開場動畫 */
     @keyframes cardEnter{
       from{
@@ -1602,15 +1717,194 @@
   </main>
   </div>
 
+<div class="more-overlay" id="more-overlay" aria-hidden="true">
+    <button class="more-backdrop" id="more-backdrop" type="button" aria-label="關閉更多選單"></button>
+
+    <section class="more-sheet" role="dialog" aria-modal="true" aria-labelledby="more-title">
+      <div class="more-main" id="more-main">
+        <header class="more-head">
+          <div>
+            <div class="more-kicker">DIGITAL CARD</div>
+            <h2 id="more-title">更多</h2>
+          </div>
+          <button class="more-close" id="more-close" type="button" aria-label="關閉">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6.7 6.7 17.3 17.3M17.3 6.7 6.7 17.3"/>
+            </svg>
+          </button>
+        </header>
+
+        <div class="more-actions">
+          <a class="more-action" href="tel:__CARD_PHONE__">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6.62 10.79a15.47 15.47 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.58a1 1 0 0 1-.25 1.02l-2.2 2.19Z"/>
+            </svg>
+            <span>撥打電話</span>
+          </a>
+
+          <button class="more-action" id="add-contact" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="9" cy="8" r="3"></circle>
+              <path d="M3.8 18.8c.4-3.6 2.4-5.5 5.2-5.5s4.8 1.9 5.2 5.5M18 7v6M15 10h6"/>
+            </svg>
+            <span>加入聯絡人</span>
+          </button>
+
+          <button class="more-action" id="share-card" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="18" cy="5" r="2.2"></circle>
+              <circle cx="6" cy="12" r="2.2"></circle>
+              <circle cx="18" cy="19" r="2.2"></circle>
+              <path d="m8 11 8-4.7M8 13l8 4.7"/>
+            </svg>
+            <span>分享名片</span>
+          </button>
+
+          <button class="more-action" id="show-qr" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/>
+              <path d="M14 14h2v2h-2zM18 14h2v4h-2zM14 18h4v2h-4z"/>
+            </svg>
+            <span>QR Code</span>
+          </button>
+
+          <button class="more-action" id="copy-link" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9.8 14.2 14.2 9.8M7.2 16.8l-1.1 1.1a3.5 3.5 0 0 1-5-5l3.3-3.3a3.5 3.5 0 0 1 5 0M16.8 7.2l1.1-1.1a3.5 3.5 0 1 1 5 5l-3.3 3.3a3.5 3.5 0 0 1-5 0"/>
+            </svg>
+            <span>複製網址</span>
+          </button>
+
+          <button class="more-action" id="copy-data" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="4" y="4" width="12" height="12" rx="2"></rect>
+              <path d="M8 8h12v12H8"/>
+            </svg>
+            <span>複製資料</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="qr-view" id="qr-view" hidden>
+        <header class="more-head">
+          <button class="qr-back" id="qr-back" type="button" aria-label="返回">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m15 5-7 7 7 7"/>
+            </svg>
+          </button>
+          <div class="qr-head-copy">
+            <div class="more-kicker">SHARE</div>
+            <h2>掃描名片</h2>
+          </div>
+          <button class="more-close" id="qr-close" type="button" aria-label="關閉">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6.7 6.7 17.3 17.3M17.3 6.7 6.7 17.3"/>
+            </svg>
+          </button>
+        </header>
+
+        <div class="qr-card">
+          <img src="qr.png" alt="此名片網址的 QR Code">
+        </div>
+        <p class="qr-tip">用另一台手機掃描即可開啟這張名片。</p>
+      </div>
+
+      <div class="copy-view" id="copy-view" hidden>
+        <header class="more-head">
+          <button class="qr-back" id="copy-back" type="button" aria-label="返回">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m15 5-7 7 7 7"/>
+            </svg>
+          </button>
+          <div class="qr-head-copy">
+            <div class="more-kicker">COPY</div>
+            <h2>複製資料</h2>
+          </div>
+          <button class="more-close" id="copy-close" type="button" aria-label="關閉">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6.7 6.7 17.3 17.3M17.3 6.7 6.7 17.3"/>
+            </svg>
+          </button>
+        </header>
+
+        <div class="copy-list">
+          <button class="copy-row" type="button"
+                  data-copy-value="__CARD_PHONE__"
+                  data-copy-label="電話">
+            <span class="copy-meta">
+              <strong>電話</strong>
+              <span>__CARD_PHONE__</span>
+            </span>
+            <span class="copy-state">複製</span>
+          </button>
+
+          <button class="copy-row" type="button"
+                  data-copy-value="__CARD_EMAIL__"
+                  data-copy-label="Email">
+            <span class="copy-meta">
+              <strong>Email</strong>
+              <span>__CARD_EMAIL__</span>
+            </span>
+            <span class="copy-state">複製</span>
+          </button>
+
+          <button class="copy-row" id="copy-instagram-row" type="button"
+                  data-copy-value="__CARD_IG_URL__"
+                  data-copy-kind="instagram"
+                  data-copy-label="Instagram">
+            <span class="copy-meta">
+              <strong>Instagram</strong>
+              <span class="copy-instagram-value">Instagram</span>
+            </span>
+            <span class="copy-state">複製</span>
+          </button>
+
+          <button class="copy-row" type="button"
+                  data-copy-value="__CARD_LINE_ID__"
+                  data-copy-label="LINE ID">
+            <span class="copy-meta">
+              <strong>LINE ID</strong>
+              <span>__CARD_LINE_ID__</span>
+            </span>
+            <span class="copy-state">複製</span>
+          </button>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <div class="copy-toast" id="copy-toast" role="status" aria-live="polite"></div>
+
+
+  <div class="photo-viewer" id="photo-viewer" aria-hidden="true">
+    <button class="photo-viewer-close" id="photo-viewer-close" type="button" aria-label="關閉照片">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6.7 6.7 17.3 17.3M17.3 6.7 6.7 17.3"/>
+      </svg>
+    </button>
+
+    <div class="photo-viewer-stage" id="photo-viewer-stage">
+      <img id="photo-viewer-image" alt="放大照片">
+    </div>
+  </div>
+
+
   <script>
     (() => {
       const root = document.documentElement;
       const card = document.querySelector(".card");
+      const hero = document.querySelector(".hero");
 
       const layers = [
         document.getElementById("hero-photo-a"),
         document.getElementById("hero-photo-b")
       ];
+
+      const viewer = document.getElementById("photo-viewer");
+      const viewerStage = document.getElementById("photo-viewer-stage");
+      const viewerImage = document.getElementById("photo-viewer-image");
+      const viewerClose = document.getElementById("photo-viewer-close");
 
       const manifest = __IMAGE_MANIFEST_JSON__;
       const buildId = __IMAGE_BUILD_ID_JSON__;
@@ -1618,11 +1912,6 @@
       const portraitImages = Array.isArray(manifest.portrait) ? manifest.portrait : [];
       const landscapeImages = Array.isArray(manifest.landscape) ? manifest.landscape : [];
 
-      /*
-        每張照片依設定速度放大約 5 秒後開始換下一張。
-        如果下一張網路還沒載完，舊照片會繼續留著，
-        等新照片 decode 完才真正交叉淡化。
-      */
       const ZOOM_DURATION = 5000;
       const CROSSFADE_MS = 2050;
 
@@ -1638,14 +1927,13 @@
 
       let zoomFrame = 0;
       let zoomGeneration = 0;
+      let viewerOpen = false;
 
-      /*
-        這裡控制的是「速度」，不是最後要放大到幾倍。
-        初始速度約每秒增加 3.5% 的 scale，
-        然後在 5 秒內平滑減速到接近 0。
-      */
-      const INITIAL_ZOOM_SPEED = 0.035; // scale / second
+      const INITIAL_ZOOM_SPEED = 0.035;
       const BASE_SCALE = 1.01;
+
+      const isMobileDevice = () =>
+        root.classList.contains("device-mobile");
 
       const viewportSize = () => {
         const vv = window.visualViewport;
@@ -1678,46 +1966,76 @@
         return path + separator + "v=" + encodeURIComponent(buildId);
       };
 
+      const sequenceKey = (mode) =>
+        "card-sequence-" + buildId + "-" + mode;
+
+      const readNextIndex = (items, mode) => {
+        if (!Array.isArray(items) || items.length === 0) return 0;
+
+        let index = memoryIndex[mode] || 0;
+
+        try {
+          const saved = Number.parseInt(
+            localStorage.getItem(sequenceKey(mode)) || "0",
+            10
+          );
+
+          if (Number.isFinite(saved) && saved >= 0) {
+            index = saved;
+          }
+        } catch (_) {}
+
+        return index % items.length;
+      };
+
+      const writeNextIndex = (items, mode, index) => {
+        if (!Array.isArray(items) || items.length === 0) return;
+
+        const normalized =
+          ((index % items.length) + items.length) % items.length;
+
+        memoryIndex[mode] = normalized;
+
+        try {
+          localStorage.setItem(sequenceKey(mode), String(normalized));
+        } catch (_) {}
+      };
+
       /*
-        不隨機，照檔名順序循環。
-        建議用 01.jpg / 02.jpg / 03.jpg 控制播放順序。
+        一般播放：依檔名自然順序前進。
       */
       const nextSequential = (items, mode) => {
         if (!Array.isArray(items) || items.length === 0) return "";
 
-        const key = "card-sequence-" + buildId + "-" + mode;
-        let index = memoryIndex[mode] || 0;
+        const index = readNextIndex(items, mode);
+        const picked = items[index];
 
-        try {
-          const saved = Number.parseInt(localStorage.getItem(key) || "0", 10);
-          if (Number.isFinite(saved) && saved >= 0) index = saved;
-        } catch (_) {}
+        writeNextIndex(items, mode, index + 1);
+        return picked;
+      };
 
-        const normalized = index % items.length;
-        const picked = items[normalized];
-        const nextIndex = (normalized + 1) % items.length;
+      /*
+        向右滑 = 上一張。
+        目前儲存的是「下一張的位置」，所以回上一張要往回兩格：
+        next=i+1 -> previous=i-1。
+      */
+      const previousSequential = (items, mode) => {
+        if (!Array.isArray(items) || items.length === 0) return "";
 
-        memoryIndex[mode] = nextIndex;
+        const nextIndex = readNextIndex(items, mode);
+        const previousIndex = nextIndex - 2;
 
-        try {
-          localStorage.setItem(key, String(nextIndex));
-        } catch (_) {}
+        writeNextIndex(items, mode, previousIndex);
 
+        const picked = nextSequential(items, mode);
         return picked;
       };
 
       const peekSequential = (items, mode) => {
         if (!Array.isArray(items) || items.length === 0) return "";
 
-        const key = "card-sequence-" + buildId + "-" + mode;
-        let index = memoryIndex[mode] || 0;
-
-        try {
-          const saved = Number.parseInt(localStorage.getItem(key) || "0", 10);
-          if (Number.isFinite(saved) && saved >= 0) index = saved;
-        } catch (_) {}
-
-        return items[index % items.length] || "";
+        const index = readNextIndex(items, mode);
+        return items[index] || "";
       };
 
       const poolFor = (mode) => {
@@ -1769,27 +2087,21 @@
 
       const stopZoom = () => {
         zoomGeneration += 1;
+
         if (zoomFrame) {
           cancelAnimationFrame(zoomFrame);
           zoomFrame = 0;
         }
       };
 
-      /*
-        速度式慢放大：
-        v(t) = INITIAL_ZOOM_SPEED × (1 - t/T)^2
-
-        一開始放大速度比較明顯，之後逐漸變慢。
-        沒有設定「一定要放到 1.075x」之類的終點；
-        最後尺寸是由速度曲線和 5 秒時間自然積分出來。
-      */
       const startRateBasedZoom = (layer) => {
-        if (!layer) return;
+        if (!layer || viewerOpen) return;
 
         stopZoom();
 
         const myGeneration = ++zoomGeneration;
         const startedAt = performance.now();
+
         let lastAt = startedAt;
         let scale = BASE_SCALE;
 
@@ -1799,7 +2111,8 @@
         const frame = (now) => {
           if (
             myGeneration !== zoomGeneration ||
-            !layer.classList.contains("is-active")
+            !layer.classList.contains("is-active") ||
+            viewerOpen
           ) {
             return;
           }
@@ -1807,12 +2120,13 @@
           const elapsed = Math.min(now - startedAt, ZOOM_DURATION);
           const progress = Math.min(1, elapsed / ZOOM_DURATION);
           const dt = Math.max(0, (now - lastAt) / 1000);
+
           lastAt = now;
 
-          // quadratic ease-out of velocity: 快 -> 慢 -> 幾乎停止
-          const speed = INITIAL_ZOOM_SPEED * Math.pow(1 - progress, 2);
-          scale += speed * dt;
+          const speed =
+            INITIAL_ZOOM_SPEED * Math.pow(1 - progress, 2);
 
+          scale += speed * dt;
           layer.style.transform = `scale(${scale})`;
 
           if (elapsed < ZOOM_DURATION) {
@@ -1820,12 +2134,13 @@
           } else {
             zoomFrame = 0;
 
-            /*
-              放大 5 秒後才開始換下一張。
-              如果網路慢，新圖沒載完，舊圖會維持目前尺寸等候。
-            */
-            if (!switching && lastMode && !document.hidden) {
-              showNextForMode(lastMode, false);
+            if (
+              !switching &&
+              !viewerOpen &&
+              lastMode &&
+              !document.hidden
+            ) {
+              showNextForMode(lastMode, false, 1);
             }
           }
         };
@@ -1834,13 +2149,19 @@
       };
 
       const startOrientationAnimation = () => {
-        if (!card || !document.body.classList.contains("opening-finished")) return;
+        if (
+          !card ||
+          !document.body.classList.contains("opening-finished")
+        ) {
+          return;
+        }
 
         card.classList.remove("orientation-transition");
         void card.offsetWidth;
         card.classList.add("orientation-transition");
 
         clearTimeout(transitionTimer);
+
         transitionTimer = window.setTimeout(() => {
           card.classList.remove("orientation-transition");
         }, 1650);
@@ -1850,16 +2171,40 @@
         startRateBasedZoom(layer);
       };
 
+      const activePhotoUrl = () => {
+        const active = layers[activeLayer];
+        return active && active.src ? active.src : "";
+      };
+
+      const syncViewerToActive = () => {
+        if (!viewerOpen || !viewerImage) return;
+
+        const src = activePhotoUrl();
+        if (!src) return;
+
+        viewerImage.classList.add("changing");
+
+        requestAnimationFrame(() => {
+          viewerImage.src = src;
+
+          const finish = () => {
+            viewerImage.classList.remove("changing");
+          };
+
+          if (typeof viewerImage.decode === "function") {
+            viewerImage.decode().then(finish).catch(finish);
+          } else {
+            viewerImage.onload = finish;
+            viewerImage.onerror = finish;
+          }
+        });
+      };
+
       const crossfadeTo = async (path, orientationChange = false) => {
         if (!path) return false;
 
         clearSlideshow();
         switching = true;
-
-        /*
-          切換開始時先停止舊圖的逐幀縮放。
-          它會維持「此刻」的大小淡出，不會突然縮回去。
-        */
         stopZoom();
 
         const generation = ++loadGeneration;
@@ -1869,10 +2214,6 @@
           card.classList.add("orientation-loading");
         }
 
-        /*
-          先把新圖在背景載完。
-          這段時間目前照片仍完整顯示，所以慢網路不會出現空白。
-        */
         const loaded = await loadImage(url);
 
         if (generation !== loadGeneration) {
@@ -1900,15 +2241,16 @@
           return false;
         }
 
-        newLayer.classList.remove("is-active", "is-zooming", "is-outgoing");
+        newLayer.classList.remove(
+          "is-active",
+          "is-zooming",
+          "is-outgoing"
+        );
+
         newLayer.style.transform = `scale(${BASE_SCALE})`;
         newLayer.classList.add("is-waiting");
         newLayer.src = url;
 
-        /*
-          loadImage 已經 decode 過同一 URL；
-          這裡再等一次新 layer 本身 decode，避免某些手機第一幀閃一下。
-        */
         try {
           if (typeof newLayer.decode === "function") {
             await newLayer.decode();
@@ -1921,49 +2263,56 @@
         }
 
         await new Promise(resolve =>
-          requestAnimationFrame(() => requestAnimationFrame(resolve))
+          requestAnimationFrame(() =>
+            requestAnimationFrame(resolve)
+          )
         );
 
         if (orientationChange) {
           startOrientationAnimation();
         }
 
-        /*
-          先確保新層還是透明，再於下一 frame 切成 active。
-          這樣旋轉時一定看得到約 2 秒的交叉淡入淡出。
-        */
         newLayer.classList.remove("is-waiting");
         void newLayer.offsetWidth;
 
         requestAnimationFrame(() => {
-          /*
-            先把舊圖此刻的 transform 讀出來並凍結。
-            之前會「卡一下」就是因為移除 is-zooming 後，
-            transform 立刻從放大的值跳回 scale(1.01)。
-          */
-          const frozenTransform = getComputedStyle(oldLayer).transform;
-          if (frozenTransform && frozenTransform !== "none") {
+          const frozenTransform =
+            getComputedStyle(oldLayer).transform;
+
+          if (
+            frozenTransform &&
+            frozenTransform !== "none"
+          ) {
             oldLayer.style.transform = frozenTransform;
           }
 
-          oldLayer.classList.remove("is-active", "is-zooming");
+          oldLayer.classList.remove(
+            "is-active",
+            "is-zooming"
+          );
+
           oldLayer.classList.add("is-outgoing");
 
           newLayer.classList.add("is-active");
           activeLayer = newIndex;
-          startZoom(newLayer);
+
+          if (viewerOpen) {
+            syncViewerToActive();
+          } else {
+            startZoom(newLayer);
+          }
         });
 
-        /*
-          交叉淡化結束後才清掉舊圖。
-          這樣 1.65 秒內兩張照片會同時存在，轉換比較柔順。
-        */
         window.setTimeout(() => {
           if (
             activeLayer !== oldIndex &&
             !oldLayer.classList.contains("is-active")
           ) {
-            oldLayer.classList.remove("is-outgoing", "is-zooming");
+            oldLayer.classList.remove(
+              "is-outgoing",
+              "is-zooming"
+            );
+
             oldLayer.style.transform = "";
             oldLayer.removeAttribute("src");
           }
@@ -1973,24 +2322,44 @@
         return true;
       };
 
-      const showNextForMode = async (mode, orientationChange = false) => {
+      const showNextForMode = async (
+        mode,
+        orientationChange = false,
+        direction = 1
+      ) => {
+        if (switching) return false;
+
         const pool = poolFor(mode);
-        const next = nextSequential(pool, mode);
 
-        if (!next) {
-          return;
-        }
+        const next =
+          direction < 0
+            ? previousSequential(pool, mode)
+            : nextSequential(pool, mode);
 
-        await crossfadeTo(next, orientationChange);
+        if (!next) return false;
 
-        /*
-          順序播放的好處是知道下一張是誰，
-          可以趁目前圖片顯示的 5 秒先預載。
-        */
+        const changed = await crossfadeTo(
+          next,
+          orientationChange
+        );
+
+        if (!changed) return false;
+
         preload(peekSequential(pool, mode));
 
-        const otherMode = mode === "portrait" ? "landscape" : "portrait";
-        preload(peekSequential(poolFor(otherMode), otherMode));
+        const otherMode =
+          mode === "portrait"
+            ? "landscape"
+            : "portrait";
+
+        preload(
+          peekSequential(
+            poolFor(otherMode),
+            otherMode
+          )
+        );
+
+        return true;
       };
 
       const applyOrientationIfChanged = () => {
@@ -2001,46 +2370,209 @@
 
         clearSlideshow();
         lastMode = mode;
-        showNextForMode(mode, true);
+        showNextForMode(mode, true, 1);
       };
 
       const scheduleOrientationCheck = () => {
         updateViewport();
 
         clearTimeout(orientationTimer);
+
         orientationTimer = window.setTimeout(() => {
           applyOrientationIfChanged();
         }, 140);
       };
 
+      const openViewer = () => {
+        if (
+          !isMobileDevice() ||
+          !viewer ||
+          !viewerImage
+        ) {
+          return;
+        }
+
+        const src = activePhotoUrl();
+        if (!src) return;
+
+        viewerOpen = true;
+        stopZoom();
+
+        viewerImage.src = src;
+        viewer.classList.add("open");
+        viewer.setAttribute("aria-hidden", "false");
+      };
+
+      const closeViewer = () => {
+        if (!viewerOpen || !viewer) return;
+
+        viewerOpen = false;
+        viewer.classList.remove("open");
+        viewer.setAttribute("aria-hidden", "true");
+
+        const active = layers[activeLayer];
+
+        if (
+          active &&
+          active.classList.contains("is-active") &&
+          !document.hidden
+        ) {
+          startRateBasedZoom(active);
+        }
+      };
+
       /*
-        初次開啟：
-        第一張 decode 完才出現，然後開始慢慢放大。
+        手機主照片：
+        - 左滑：下一張
+        - 右滑：上一張
+        - 輕點：全螢幕
       */
+      const bindSwipeTarget = (
+        target,
+        {
+          tapToOpen = false,
+          stopPropagation = false
+        } = {}
+      ) => {
+        if (!target) return;
+
+        let startX = 0;
+        let startY = 0;
+        let startedAt = 0;
+        let horizontalGesture = false;
+
+        target.addEventListener(
+          "touchstart",
+          (event) => {
+            if (
+              !isMobileDevice() ||
+              event.touches.length !== 1
+            ) {
+              return;
+            }
+
+            const touch = event.touches[0];
+
+            startX = touch.clientX;
+            startY = touch.clientY;
+            startedAt = performance.now();
+            horizontalGesture = false;
+          },
+          {passive:true}
+        );
+
+        target.addEventListener(
+          "touchmove",
+          (event) => {
+            if (
+              !isMobileDevice() ||
+              event.touches.length !== 1
+            ) {
+              return;
+            }
+
+            const touch = event.touches[0];
+            const dx = touch.clientX - startX;
+            const dy = touch.clientY - startY;
+
+            if (
+              Math.abs(dx) > 12 &&
+              Math.abs(dx) > Math.abs(dy) * 1.2
+            ) {
+              horizontalGesture = true;
+              event.preventDefault();
+            }
+          },
+          {passive:false}
+        );
+
+        target.addEventListener(
+          "touchend",
+          (event) => {
+            if (!isMobileDevice()) return;
+
+            const touch =
+              event.changedTouches &&
+              event.changedTouches[0];
+
+            if (!touch) return;
+
+            const dx = touch.clientX - startX;
+            const dy = touch.clientY - startY;
+            const elapsed =
+              performance.now() - startedAt;
+
+            if (
+              horizontalGesture &&
+              Math.abs(dx) >= 46 &&
+              Math.abs(dx) >
+                Math.abs(dy) * 1.15
+            ) {
+              if (stopPropagation) {
+                event.stopPropagation();
+              }
+
+              showNextForMode(
+                lastMode || currentMode(),
+                false,
+                dx < 0 ? 1 : -1
+              );
+
+              return;
+            }
+
+            if (
+              tapToOpen &&
+              elapsed < 420 &&
+              Math.abs(dx) < 12 &&
+              Math.abs(dy) < 12
+            ) {
+              openViewer();
+            }
+          },
+          {passive:true}
+        );
+      };
+
       updateViewport();
       lastMode = currentMode();
-      showNextForMode(lastMode, false);
+      showNextForMode(lastMode, false, 1);
 
       window.setTimeout(() => {
-        document.body.classList.add("opening-finished");
+        document.body.classList.add(
+          "opening-finished"
+        );
       }, 1200);
 
-      /*
-        不同手機旋轉會走不同事件，所以多路監聽。
-        真正換照片前仍會判斷方向是否真的改變，不會重複跳圖。
-      */
-      window.addEventListener("orientationchange", scheduleOrientationCheck, {passive:true});
-      window.addEventListener("resize", scheduleOrientationCheck, {passive:true});
+      window.addEventListener(
+        "orientationchange",
+        scheduleOrientationCheck,
+        {passive:true}
+      );
 
-      const portraitQuery = window.matchMedia
-        ? window.matchMedia("(orientation: portrait)")
-        : null;
+      window.addEventListener(
+        "resize",
+        scheduleOrientationCheck,
+        {passive:true}
+      );
+
+      const portraitQuery =
+        window.matchMedia
+          ? window.matchMedia(
+              "(orientation: portrait)"
+            )
+          : null;
 
       if (portraitQuery) {
         if (portraitQuery.addEventListener) {
-          portraitQuery.addEventListener("change", scheduleOrientationCheck);
+          portraitQuery.addEventListener(
+            "change",
+            scheduleOrientationCheck
+          );
         } else if (portraitQuery.addListener) {
-          portraitQuery.addListener(scheduleOrientationCheck);
+          portraitQuery.addListener(
+            scheduleOrientationCheck
+          );
         }
       }
 
@@ -2049,66 +2581,172 @@
         window.screen.orientation &&
         window.screen.orientation.addEventListener
       ) {
-        window.screen.orientation.addEventListener("change", scheduleOrientationCheck);
+        window.screen.orientation.addEventListener(
+          "change",
+          scheduleOrientationCheck
+        );
       }
 
       if (window.visualViewport) {
-        window.visualViewport.addEventListener("resize", scheduleOrientationCheck, {passive:true});
-        window.visualViewport.addEventListener("scroll", updateViewport, {passive:true});
+        window.visualViewport.addEventListener(
+          "resize",
+          scheduleOrientationCheck,
+          {passive:true}
+        );
+
+        window.visualViewport.addEventListener(
+          "scroll",
+          updateViewport,
+          {passive:true}
+        );
       }
 
-      /*
-        分頁切到背景就停止輪播，避免偷偷下載/跑動畫。
-        回到網頁後再從目前照片開始計 5 秒。
-      */
-      document.addEventListener("visibilitychange", () => {
-        if (document.hidden) {
-          clearSlideshow();
-        } else {
+      document.addEventListener(
+        "visibilitychange",
+        () => {
+          if (document.hidden) {
+            clearSlideshow();
+            stopZoom();
+          } else {
+            updateViewport();
+
+            const active = layers[activeLayer];
+
+            if (
+              !viewerOpen &&
+              active &&
+              active.classList.contains("is-active")
+            ) {
+              startRateBasedZoom(active);
+            }
+          }
+        }
+      );
+
+      window.addEventListener(
+        "pageshow",
+        (event) => {
           updateViewport();
 
-          const active = layers[activeLayer];
-          if (active && active.classList.contains("is-active")) {
-            startRateBasedZoom(active);
+          if (event.persisted) {
+            scheduleOrientationCheck();
+
+            const active = layers[activeLayer];
+
+            if (
+              !viewerOpen &&
+              active &&
+              active.classList.contains("is-active")
+            ) {
+              startRateBasedZoom(active);
+            }
           }
         }
-      });
+      );
 
-      window.addEventListener("pageshow", (event) => {
-        updateViewport();
+      if (isMobileDevice()) {
+        bindSwipeTarget(hero, {
+          tapToOpen:true
+        });
 
-        if (event.persisted) {
-          scheduleOrientationCheck();
+        bindSwipeTarget(viewerStage, {
+          tapToOpen:false,
+          stopPropagation:true
+        });
 
-          const active = layers[activeLayer];
-          if (active && active.classList.contains("is-active")) {
-            startRateBasedZoom(active);
+        viewerClose?.addEventListener(
+          "click",
+          closeViewer
+        );
+
+        viewer?.addEventListener(
+          "click",
+          (event) => {
+            if (
+              event.target === viewer ||
+              event.target === viewerStage
+            ) {
+              closeViewer();
+            }
           }
-        }
-      });
+        );
+
+        document.addEventListener(
+          "keydown",
+          (event) => {
+            if (
+              event.key === "Escape" &&
+              viewerOpen
+            ) {
+              closeViewer();
+            }
+          }
+        );
+      }
     })();
   </script>
 
   <script>
     (() => {
-      const overlay = document.getElementById("more-overlay");
-      const trigger = document.getElementById("more-trigger");
-      const backdrop = document.getElementById("more-backdrop");
-      const closeBtn = document.getElementById("more-close");
-      const qrClose = document.getElementById("qr-close");
-      const qrBack = document.getElementById("qr-back");
-      const showQr = document.getElementById("show-qr");
-      const main = document.getElementById("more-main");
-      const qrView = document.getElementById("qr-view");
-      const shareBtn = document.getElementById("share-card");
-      const copyLinkBtn = document.getElementById("copy-link");
-      const copyPhoneBtn = document.getElementById("copy-phone");
-      const addContactBtn = document.getElementById("add-contact");
-      const toast = document.getElementById("copy-toast");
+      const overlay =
+        document.getElementById("more-overlay");
+
+      const trigger =
+        document.getElementById("more-trigger");
+
+      const backdrop =
+        document.getElementById("more-backdrop");
+
+      const closeBtn =
+        document.getElementById("more-close");
+
+      const main =
+        document.getElementById("more-main");
+
+      const qrView =
+        document.getElementById("qr-view");
+
+      const qrClose =
+        document.getElementById("qr-close");
+
+      const qrBack =
+        document.getElementById("qr-back");
+
+      const showQr =
+        document.getElementById("show-qr");
+
+      const copyView =
+        document.getElementById("copy-view");
+
+      const copyDataBtn =
+        document.getElementById("copy-data");
+
+      const copyBack =
+        document.getElementById("copy-back");
+
+      const copyClose =
+        document.getElementById("copy-close");
+
+      const shareBtn =
+        document.getElementById("share-card");
+
+      const copyLinkBtn =
+        document.getElementById("copy-link");
+
+      const addContactBtn =
+        document.getElementById("add-contact");
+
+      const toast =
+        document.getElementById("copy-toast");
 
       if (!overlay || !trigger) return;
 
       let toastTimer = 0;
+
+      const isMobile =
+        document.documentElement.classList.contains(
+          "device-mobile"
+        );
 
       const showToast = (text) => {
         if (!toast) return;
@@ -2119,21 +2757,31 @@
         toast.classList.add("show");
 
         clearTimeout(toastTimer);
+
         toastTimer = window.setTimeout(() => {
           toast.classList.remove("show");
         }, 1800);
       };
 
-      const copyText = async (text, successText) => {
+      const copyText = async (
+        text,
+        successText
+      ) => {
         try {
-          if (navigator.clipboard && window.isSecureContext) {
+          if (
+            navigator.clipboard &&
+            window.isSecureContext
+          ) {
             await navigator.clipboard.writeText(text);
           } else {
-            const ta = document.createElement("textarea");
+            const ta =
+              document.createElement("textarea");
+
             ta.value = text;
-            ta.setAttribute("readonly","");
+            ta.setAttribute("readonly", "");
             ta.style.position = "fixed";
             ta.style.opacity = "0";
+
             document.body.appendChild(ta);
             ta.select();
             document.execCommand("copy");
@@ -2143,112 +2791,337 @@
           showToast(successText);
           return true;
         } catch (_) {
-          showToast("無法自動複製，請手動複製");
+          showToast(
+            "無法自動複製，請手動複製"
+          );
+
           return false;
         }
       };
 
-      const openSheet = () => {
+      const showMain = () => {
         main.hidden = false;
         qrView.hidden = true;
+        copyView.hidden = true;
+      };
+
+      const openSheet = () => {
+        showMain();
+
         overlay.classList.add("open");
-        overlay.setAttribute("aria-hidden","false");
+        overlay.setAttribute(
+          "aria-hidden",
+          "false"
+        );
 
         window.setTimeout(() => {
-          closeBtn?.focus({preventScroll:true});
+          closeBtn?.focus({
+            preventScroll:true
+          });
         }, 80);
       };
 
       const closeSheet = () => {
         overlay.classList.remove("open");
-        overlay.setAttribute("aria-hidden","true");
+        overlay.setAttribute(
+          "aria-hidden",
+          "true"
+        );
 
-        window.setTimeout(() => {
-          main.hidden = false;
-          qrView.hidden = true;
-        }, 320);
+        window.setTimeout(showMain, 360);
       };
 
       const openQr = () => {
         main.hidden = true;
+        copyView.hidden = true;
         qrView.hidden = false;
-        qrBack?.focus({preventScroll:true});
+
+        qrBack?.focus({
+          preventScroll:true
+        });
       };
 
-      const backFromQr = () => {
+      const openCopy = () => {
+        main.hidden = true;
         qrView.hidden = true;
-        main.hidden = false;
-        showQr?.focus({preventScroll:true});
+        copyView.hidden = false;
+
+        copyBack?.focus({
+          preventScroll:true
+        });
       };
 
-      trigger.addEventListener("click",openSheet);
-      backdrop?.addEventListener("click",closeSheet);
-      closeBtn?.addEventListener("click",closeSheet);
-      qrClose?.addEventListener("click",closeSheet);
-      qrBack?.addEventListener("click",backFromQr);
-      showQr?.addEventListener("click",openQr);
+      const backToMain = (
+        focusTarget = null
+      ) => {
+        showMain();
 
-      copyLinkBtn?.addEventListener("click",() => {
-        copyText(location.href,"名片網址已複製");
-      });
+        focusTarget?.focus({
+          preventScroll:true
+        });
+      };
 
-      copyPhoneBtn?.addEventListener("click",() => {
-        copyText("__CARD_PHONE__","電話號碼已複製");
-      });
+      trigger.addEventListener(
+        "click",
+        openSheet
+      );
+
+      backdrop?.addEventListener(
+        "click",
+        closeSheet
+      );
+
+      closeBtn?.addEventListener(
+        "click",
+        closeSheet
+      );
+
+      qrClose?.addEventListener(
+        "click",
+        closeSheet
+      );
+
+      copyClose?.addEventListener(
+        "click",
+        closeSheet
+      );
+
+      qrBack?.addEventListener(
+        "click",
+        () => backToMain(showQr)
+      );
+
+      copyBack?.addEventListener(
+        "click",
+        () => backToMain(copyDataBtn)
+      );
+
+      showQr?.addEventListener(
+        "click",
+        openQr
+      );
+
+      copyDataBtn?.addEventListener(
+        "click",
+        openCopy
+      );
+
+      copyLinkBtn?.addEventListener(
+        "click",
+        () => {
+          copyText(
+            location.href,
+            "名片網址已複製"
+          );
+        }
+      );
 
       /*
-        加入聯絡人只存在手機版 More。
-        瀏覽器本身不能靜默寫入系統聯絡人，所以最後仍需要
-        iOS / Android 的聯絡人介面讓使用者確認。
-
-        iPhone/iPad：直接導向 .vcf，Safari 通常會交給 vCard 預覽。
-        Android：直接開啟 .vcf，交由系統/聯絡人 App 處理。
-        不使用 Blob / download 屬性，避免把它刻意變成「下載附件」流程。
+        加入聯絡人只存在手機版。
+        不使用 download=，讓瀏覽器直接把 contact.vcf
+        交給 iOS / Android 的 vCard 處理流程。
       */
-      const mobilePlatform = (() => {
-        const ua = navigator.userAgent || "";
-        const iPadDesktopUA =
-          navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
-
-        if (/iPhone|iPad|iPod/i.test(ua) || iPadDesktopUA) return "ios";
-        if (/Android/i.test(ua)) return "android";
-        return "mobile";
-      })();
-
-      addContactBtn?.addEventListener("click",() => {
-        /*
-          使用同頁導向而不是 download=，讓瀏覽器有機會直接交給
-          系統 vCard 處理器。這是純網頁能做到最接近「直接加入」的方式。
-        */
-        window.location.assign("contact.vcf");
-      });
-
-      shareBtn?.addEventListener("click",async () => {
-        if (navigator.share) {
-          try {
-            await navigator.share({
-              title: document.title,
-              text: "__CARD_NAME__ 的數位名片",
-              url: location.href
-            });
-            return;
-          } catch (error) {
-            if (error && error.name === "AbortError") return;
-          }
+      addContactBtn?.addEventListener(
+        "click",
+        () => {
+          window.location.assign(
+            "contact.vcf"
+          );
         }
+      );
 
-        await copyText(location.href,"此裝置不支援分享，已複製網址");
-      });
+      shareBtn?.addEventListener(
+        "click",
+        async () => {
+          if (navigator.share) {
+            try {
+              await navigator.share({
+                title:document.title,
+                text:"__CARD_NAME__ 的數位名片",
+                url:location.href
+              });
 
-      document.addEventListener("keydown",(event) => {
-        if (event.key !== "Escape" || !overlay.classList.contains("open")) return;
+              return;
+            } catch (error) {
+              if (
+                error &&
+                error.name === "AbortError"
+              ) {
+                return;
+              }
+            }
+          }
 
-        if (!qrView.hidden) {
-          backFromQr();
-        } else {
+          await copyText(
+            location.href,
+            "此裝置不支援分享，已複製網址"
+          );
+        }
+      );
+
+      /*
+        複製資料：
+        Instagram 顯示與複製帳號名稱，而不是整條網址。
+        LINE ID 使用 CARD_LINE_ID Secret。
+      */
+      const instagramHandleFromUrl = (
+        value
+      ) => {
+        try {
+          const url = new URL(value);
+          const part =
+            url.pathname
+              .split("/")
+              .filter(Boolean)[0];
+
+          return part
+            ? "@" + decodeURIComponent(part)
+            : value;
+        } catch (_) {
+          return value;
+        }
+      };
+
+      const instagramRow =
+        document.getElementById(
+          "copy-instagram-row"
+        );
+
+      if (instagramRow) {
+        const raw =
+          instagramRow.dataset.copyValue || "";
+
+        const handle =
+          instagramHandleFromUrl(raw);
+
+        instagramRow.dataset.copyValue =
+          handle.replace(/^@/, "");
+
+        const label =
+          instagramRow.querySelector(
+            ".copy-instagram-value"
+          );
+
+        if (label) {
+          label.textContent = handle;
+        }
+      }
+
+      document
+        .querySelectorAll(".copy-row")
+        .forEach((row) => {
+          row.addEventListener(
+            "click",
+            async () => {
+              const value =
+                row.dataset.copyValue || "";
+
+              const label =
+                row.dataset.copyLabel ||
+                "資料";
+
+              if (!value) return;
+
+              const ok =
+                await copyText(
+                  value,
+                  label + "已複製"
+                );
+
+              if (!ok) return;
+
+              const state =
+                row.querySelector(
+                  ".copy-state"
+                );
+
+              const oldText =
+                state?.textContent ||
+                "複製";
+
+              row.classList.add("copied");
+
+              if (state) {
+                state.textContent =
+                  "✓ 已複製";
+              }
+
+              window.setTimeout(() => {
+                row.classList.remove(
+                  "copied"
+                );
+
+                if (state) {
+                  state.textContent =
+                    oldText;
+                }
+              }, 1200);
+            }
+          );
+        });
+
+      /*
+        App 智慧開啟（只套用手機版）：
+        不用已被 LINE 官方淘汰的 line:// custom scheme。
+        改為在同一分頁導向官方 HTTPS / Universal Link；
+        已安裝 App 時交給手機 OS 開 App，沒有 App 就留在網頁。
+        電腦版完全不掛這段事件。
+      */
+      if (isMobile) {
+        document
+          .querySelectorAll(
+            ".mobile-contact-panel a[href^='http']"
+          )
+          .forEach((link) => {
+            link.removeAttribute("target");
+
+            link.addEventListener(
+              "click",
+              (event) => {
+                if (
+                  event.defaultPrevented ||
+                  event.metaKey ||
+                  event.ctrlKey ||
+                  event.shiftKey ||
+                  event.altKey
+                ) {
+                  return;
+                }
+
+                event.preventDefault();
+                window.location.assign(
+                  link.href
+                );
+              }
+            );
+          });
+      }
+
+      document.addEventListener(
+        "keydown",
+        (event) => {
+          if (
+            event.key !== "Escape" ||
+            !overlay.classList.contains(
+              "open"
+            )
+          ) {
+            return;
+          }
+
+          if (!copyView.hidden) {
+            backToMain(copyDataBtn);
+            return;
+          }
+
+          if (!qrView.hidden) {
+            backToMain(showQr);
+            return;
+          }
+
           closeSheet();
         }
-      });
+      );
     })();
   </script>
 
