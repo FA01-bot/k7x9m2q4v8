@@ -1,5 +1,6 @@
 from pathlib import Path
-import os, html, re, shutil, json
+import os, html, re, shutil, json, hashlib
+from PIL import Image, ImageOps
 
 required = [
     "CARD_PATH","CARD_NAME","CARD_PHONE","CARD_EMAIL",
@@ -28,44 +29,88 @@ def collect(folder):
     if not folder.exists():
         return []
     return [
-        f.relative_to(site).as_posix()
-        for f in sorted(folder.rglob("*"))
+        f for f in sorted(folder.rglob("*"))
         if f.is_file() and f.suffix.lower() in image_exts
     ]
 
-portrait_dirs = [site / "portrait", site / "images" / "portrait"]
-landscape_dirs = [site / "landscape", site / "images" / "landscape"]
+portrait_sources = collect(site / "portrait") + collect(site / "images" / "portrait")
+landscape_sources = collect(site / "landscape") + collect(site / "images" / "landscape")
 
-portrait_images = sum((collect(p) for p in portrait_dirs), [])
-landscape_images = sum((collect(p) for p in landscape_dirs), [])
+if not portrait_sources:
+    raise SystemExit(
+        "No portrait images found. Put at least one image in "
+        "site/portrait/ or site/images/portrait/."
+    )
 
-for folder in [site / "portrait", site / "landscape", site / "images"]:
-    if folder.exists():
-        shutil.copytree(folder, target / folder.relative_to(site), dirs_exist_ok=True)
+def optimize_group(files, group):
+    out_dir = target / "media" / group
+    out_dir.mkdir(parents=True, exist_ok=True)
 
-fallback = site / "asset-01.jpg"
-if fallback.exists():
-    shutil.copy2(fallback, target / "asset-01.jpg")
-
-if not portrait_images:
-    if fallback.exists():
-        portrait_images = ["asset-01.jpg"]
+    if group == "portrait":
+        max_size = (1200, 2000)
     else:
-        raise SystemExit(
-            "No portrait images found. Put at least one image in "
-            "site/portrait/ or site/images/portrait/."
-        )
+        max_size = (2000, 1200)
 
-if not landscape_images:
+    urls = []
+    total_before = 0
+    total_after = 0
+
+    for source in files:
+        raw = source.read_bytes()
+        total_before += len(raw)
+        digest = hashlib.sha256(raw).hexdigest()[:16]
+        dest = out_dir / f"{digest}.webp"
+
+        with Image.open(source) as im:
+            im = ImageOps.exif_transpose(im)
+
+            # Photos do not need huge source dimensions on a business-card page.
+            im.thumbnail(max_size, Image.Resampling.LANCZOS)
+
+            # Preserve alpha only when it actually exists.
+            if "A" in im.getbands():
+                im = im.convert("RGBA")
+            else:
+                im = im.convert("RGB")
+
+            im.save(
+                dest,
+                "WEBP",
+                quality=82,
+                method=6,
+                optimize=True,
+            )
+
+        total_after += dest.stat().st_size
+        urls.append(dest.relative_to(target).as_posix())
+
+    before_mb = total_before / (1024 * 1024)
+    after_mb = total_after / (1024 * 1024)
+    print(
+        f"{group}: {len(files)} image(s), "
+        f"{before_mb:.2f} MB source -> {after_mb:.2f} MB deployed WebP"
+    )
+    return urls
+
+portrait_images = optimize_group(portrait_sources, "portrait")
+
+if landscape_sources:
+    landscape_images = optimize_group(landscape_sources, "landscape")
+else:
     landscape_images = list(portrait_images)
+    print("landscape: no images; using portrait group as fallback")
 
-manifest = {"portrait": portrait_images, "landscape": landscape_images}
-(target / "image-manifest.js").write_text(
-    "window.CARD_IMAGES = " +
-    json.dumps(manifest, ensure_ascii=False, separators=(",", ":")) +
-    ";\n",
-    encoding="utf-8",
-)
+manifest = {
+    "portrait": portrait_images,
+    "landscape": landscape_images,
+}
+
+# Version is based on optimized image URLs, so replacing photos changes the cache key.
+manifest_text = json.dumps(manifest, ensure_ascii=False, separators=(",", ":"))
+build_id = hashlib.sha256(manifest_text.encode("utf-8")).hexdigest()[:16]
+
+manifest_json = manifest_text.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+build_id_json = json.dumps(build_id)
 
 vals = {
     "__CARD_NAME__": html.escape(os.environ["CARD_NAME"], quote=True),
@@ -79,6 +124,9 @@ vals = {
 page = (site / "index.template.html").read_text(encoding="utf-8")
 for token, value in vals.items():
     page = page.replace(token, value)
+
+page = page.replace("__IMAGE_MANIFEST_JSON__", manifest_json)
+page = page.replace("__IMAGE_BUILD_ID_JSON__", build_id_json)
 (target / "index.html").write_text(page, encoding="utf-8")
 
 def vcard_escape(v):
@@ -100,17 +148,21 @@ for token, value in vcf_vals.items():
 
 (out / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
 
-root_page = '''<!doctype html>
+root_page = """<!doctype html>
 <html lang="zh-Hant"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
 <title>404</title><style>
 html,body{height:100%;margin:0;background:#121728;color:#cbd5e1;font-family:system-ui,sans-serif}
 body{display:grid;place-items:center}.x{text-align:center}h1{font-size:64px;margin:0}p{opacity:.72}
-</style></head><body><div class="x"><h1>404</h1><p>Page not found.</p></div></body></html>'''
+</style></head><body><div class="x"><h1>404</h1><p>Page not found.</p></div></body></html>"""
 
 (out / "index.html").write_text(root_page, encoding="utf-8")
 (out / "404.html").write_text(root_page, encoding="utf-8")
 (out / ".nojekyll").write_text("", encoding="utf-8")
 
-print(f"Pages artifact built successfully. Portrait images: {len(portrait_images)}, landscape images: {len(landscape_images)}")
+print(
+    f"Pages artifact built successfully. "
+    f"Portrait: {len(portrait_images)}, landscape: {len(landscape_images)}, "
+    f"build id: {build_id}"
+)
