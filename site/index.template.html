@@ -325,10 +325,10 @@
     }
 
 
+
     /*
       橫向 / 電腦寬螢幕：
-      卡片幾乎填滿目前真正可視畫面，左側是照片與介紹，
-      右側變成聯絡面板，不再把手機直向版硬拉寬。
+      左側照片，右側控制區直接吃滿整個高度。
     */
     @media (orientation:landscape){
       .viewport{
@@ -346,8 +346,8 @@
         max-height:none;
 
         display:grid;
-        grid-template-columns:minmax(0,1fr) clamp(245px,29vw,390px);
-        grid-template-rows:1fr;
+        grid-template-columns:minmax(0,1fr) clamp(250px,29vw,400px);
+        grid-template-rows:minmax(0,1fr);
 
         border-radius:clamp(16px,2vw,26px);
       }
@@ -380,81 +380,102 @@
 
       .contact-panel{
         height:100%;
+        min-height:0;
         min-width:0;
-        display:flex;
-        flex-direction:column;
-        justify-content:center;
+
+        display:grid;
+        grid-template-rows:minmax(0,1fr) auto;
+        align-items:stretch;
+        gap:clamp(10px,2vh,18px);
+
         padding:
-          clamp(10px,3vh,28px)
-          clamp(12px,2.4vw,30px);
+          clamp(12px,2.2vh,24px)
+          clamp(12px,2.2vw,26px);
+
         border-left:1px solid rgba(255,255,255,.08);
       }
 
       .quick-actions{
         width:100%;
+        height:100%;
+        min-height:0;
+
+        display:grid;
         grid-template-columns:repeat(2,minmax(0,1fr));
-        gap:clamp(7px,1.5vh,12px);
-        margin-bottom:clamp(8px,2.4vh,22px);
+        grid-template-rows:repeat(2,minmax(0,1fr));
+
+        gap:clamp(8px,1.6vh,14px);
+        margin:0;
       }
 
       .quick{
-        min-height:clamp(42px,12vh,82px);
+        width:100%;
+        height:100%;
+        min-height:0;
+        padding:clamp(7px,1.4vh,12px) 5px;
+
+        justify-content:center;
+        border-radius:clamp(14px,1.8vw,20px);
       }
 
       .quick svg{
-        width:clamp(22px,5.7vh,34px);
-        height:clamp(22px,5.7vh,34px);
+        width:clamp(24px,5vh,38px);
+        height:clamp(24px,5vh,38px);
       }
 
       .quick-label{
-        font-size:clamp(.52rem,2.2vh,.72rem);
+        font-size:clamp(.58rem,1.8vh,.78rem);
       }
 
       .line-bubble{
-        width:clamp(24px,5.8vh,32px);
-        height:clamp(19px,4.7vh,26px);
+        width:clamp(26px,5.2vh,36px);
+        height:clamp(21px,4.2vh,29px);
       }
 
       .instagram{
         width:100%;
-        min-height:clamp(36px,9.5vh,58px);
+        min-height:clamp(42px,8vh,62px);
+        border-radius:clamp(14px,1.8vw,20px);
       }
     }
 
-    /* 超寬桌面：讓右側功能區不會顯得太巨大 */
+    /* 超寬桌面：右側保持漂亮比例，但依然填滿高度 */
     @media (orientation:landscape) and (min-width:1200px){
       .card{
-        grid-template-columns:minmax(0,1fr) minmax(320px,24vw);
+        grid-template-columns:minmax(0,1fr) minmax(330px,25vw);
       }
 
       .contact-panel{
-        padding-left:clamp(24px,3vw,46px);
-        padding-right:clamp(24px,3vw,46px);
+        padding:
+          clamp(20px,3vh,34px)
+          clamp(22px,2.7vw,42px);
+        gap:clamp(14px,2.2vh,24px);
       }
 
-      .quick{
-        min-height:72px;
+      .quick-actions{
+        gap:clamp(12px,1.7vw,20px);
       }
     }
 
-    /* 橫向手機很矮時，優先完整顯示 */
+    /* 很矮的橫向手機：仍然填滿，但把文字標籤收起來 */
     @media (orientation:landscape) and (max-height:520px){
       .card{
         grid-template-columns:minmax(0,1fr) clamp(210px,32vw,300px);
       }
 
       .contact-panel{
-        padding:6px 9px;
+        padding:6px 8px;
+        gap:6px;
       }
 
       .quick-actions{
         gap:5px;
-        margin-bottom:5px;
       }
 
       .quick{
-        min-height:36px;
-        padding:4px 2px;
+        min-height:0;
+        padding:3px;
+        border-radius:11px;
       }
 
       .quick-label{
@@ -466,9 +487,16 @@
         height:20px;
       }
 
+      .line-bubble{
+        width:22px;
+        height:18px;
+        font-size:.36rem;
+      }
+
       .instagram{
         min-height:32px;
         font-size:.73rem;
+        border-radius:11px;
       }
 
       .instagram svg{
@@ -491,6 +519,7 @@
       }
     }
 
+
     @keyframes photoChange{
       from{opacity:.35;transform:scale(1.035)}
       to{opacity:1;transform:scale(1.01)}
@@ -498,6 +527,76 @@
 
     .hero img.photo-change{
       animation:photoChange .45s ease-out both;
+    }
+
+
+    /* 裝置方向切換時的動畫 */
+    @keyframes orientationPhotoIn{
+      from{
+        opacity:.15;
+        transform:scale(1.055);
+        filter:saturate(.82) brightness(.82) blur(2px);
+      }
+      to{
+        opacity:1;
+        transform:scale(1.01);
+        filter:saturate(.88) brightness(.91) contrast(.96) blur(0);
+      }
+    }
+
+    @keyframes orientationContentIn{
+      from{
+        opacity:0;
+        transform:translateY(10px);
+      }
+      to{
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+
+    @keyframes orientationPanelIn{
+      from{
+        opacity:.25;
+        transform:scale(.985);
+      }
+      to{
+        opacity:1;
+        transform:scale(1);
+      }
+    }
+
+    body.opening-finished .card,
+    body.opening-finished .hero img,
+    body.opening-finished .intro,
+    body.opening-finished .quick,
+    body.opening-finished .instagram{
+      animation:none;
+      opacity:1;
+    }
+
+    body.opening-finished .hero img{
+      transform:scale(1.01);
+      filter:saturate(.88) brightness(.91) contrast(.96);
+    }
+
+    body.opening-finished .intro,
+    body.opening-finished .quick,
+    body.opening-finished .instagram{
+      transform:none;
+    }
+
+    body.opening-finished .card.orientation-transition .hero img{
+      animation:orientationPhotoIn .62s cubic-bezier(.22,.72,.2,1) both !important;
+    }
+
+    body.opening-finished .card.orientation-transition .intro{
+      animation:orientationContentIn .52s cubic-bezier(.22,.72,.2,1) .08s both !important;
+    }
+
+    body.opening-finished .card.orientation-transition .contact-panel{
+      animation:orientationPanelIn .55s cubic-bezier(.22,.72,.2,1) .05s both !important;
+      transform-origin:center;
     }
 
     /* 開場動畫 */
@@ -656,8 +755,19 @@
   <script>
     (() => {
       const root = document.documentElement;
+      const card = document.querySelector(".card");
       const photo = document.getElementById("hero-photo");
+
+      const manifest = __IMAGE_MANIFEST_JSON__;
+      const buildId = __IMAGE_BUILD_ID_JSON__;
+
+      const portraitImages = Array.isArray(manifest.portrait) ? manifest.portrait : [];
+      const landscapeImages = Array.isArray(manifest.landscape) ? manifest.landscape : [];
+
+      const memoryIndex = {portrait:0, landscape:0};
       let lastMode = null;
+      let orientationTimer = 0;
+      let transitionTimer = 0;
 
       const viewportSize = () => {
         const vv = window.visualViewport;
@@ -671,75 +781,170 @@
         const {width, height} = viewportSize();
         root.style.setProperty("--vwpx", width + "px");
         root.style.setProperty("--vhpx", height + "px");
-        return {width, height};
       };
 
-      const chooseDifferent = (items, mode) => {
+      const currentMode = () => {
+        if (window.matchMedia) {
+          return window.matchMedia("(orientation: portrait)").matches
+            ? "portrait"
+            : "landscape";
+        }
+        const {width, height} = viewportSize();
+        return height >= width ? "portrait" : "landscape";
+      };
+
+      const versionedUrl = (path) => {
+        if (!path) return "";
+        const separator = path.includes("?") ? "&" : "?";
+        return path + separator + "v=" + encodeURIComponent(buildId);
+      };
+
+      /*
+        不再隨機。
+        每一組圖片都依 manifest 的順序 1 → 2 → 3 → 1 循環。
+        build.py 會依檔名自然排序，所以建議用 01.jpg、02.jpg、03.jpg。
+      */
+      const nextSequential = (items, mode) => {
         if (!Array.isArray(items) || items.length === 0) return "";
 
-        const key = "card-last-photo-" + mode;
-        let previous = "";
-        try { previous = localStorage.getItem(key) || ""; } catch (_) {}
+        const key = "card-sequence-" + buildId + "-" + mode;
+        let index = memoryIndex[mode] || 0;
 
-        let choices = items;
-        if (items.length > 1 && previous) {
-          const filtered = items.filter(x => x !== previous);
-          if (filtered.length) choices = filtered;
-        }
+        try {
+          const saved = Number.parseInt(localStorage.getItem(key) || "0", 10);
+          if (Number.isFinite(saved) && saved >= 0) index = saved;
+        } catch (_) {}
 
-        const picked = choices[Math.floor(Math.random() * choices.length)];
+        const normalized = index % items.length;
+        const picked = items[normalized];
+        const nextIndex = (normalized + 1) % items.length;
 
-        try { localStorage.setItem(key, picked); } catch (_) {}
+        memoryIndex[mode] = nextIndex;
+        try { localStorage.setItem(key, String(nextIndex)); } catch (_) {}
+
         return picked;
       };
 
-      const setPhotoForOrientation = (force = false) => {
-        const {width, height} = viewportSize();
-        const mode = height >= width ? "portrait" : "landscape";
+      const peekSequential = (items, mode) => {
+        if (!Array.isArray(items) || items.length === 0) return "";
 
-        if (!force && mode === lastMode) return;
-        lastMode = mode;
+        const key = "card-sequence-" + buildId + "-" + mode;
+        let index = memoryIndex[mode] || 0;
 
-        const manifest = __IMAGE_MANIFEST_JSON__;
-        const buildId = __IMAGE_BUILD_ID_JSON__;
-        const portrait = Array.isArray(manifest.portrait) ? manifest.portrait : [];
-        const landscape = Array.isArray(manifest.landscape) ? manifest.landscape : [];
+        try {
+          const saved = Number.parseInt(localStorage.getItem(key) || "0", 10);
+          if (Number.isFinite(saved) && saved >= 0) index = saved;
+        } catch (_) {}
 
-        let pool = mode === "portrait" ? portrait : landscape;
+        return items[index % items.length] || "";
+      };
 
-        // 如果某一組還沒放照片，就暫時退回另一組，不讓網站壞掉。
-        if (!pool.length) pool = mode === "portrait" ? landscape : portrait;
+      const poolFor = (mode) => {
+        let pool = mode === "portrait" ? portraitImages : landscapeImages;
+        if (!pool.length) {
+          pool = mode === "portrait" ? landscapeImages : portraitImages;
+        }
+        return pool;
+      };
 
-        const next = chooseDifferent(pool, mode);
+      const preload = (path) => {
+        if (!path) return;
+        const img = new Image();
+        img.decoding = "async";
+        img.src = versionedUrl(path);
+      };
+
+      const animateOrientation = () => {
+        if (!card || !document.body.classList.contains("opening-finished")) return;
+
+        card.classList.remove("orientation-transition");
+        void card.offsetWidth;
+        card.classList.add("orientation-transition");
+
+        clearTimeout(transitionTimer);
+        transitionTimer = window.setTimeout(() => {
+          card.classList.remove("orientation-transition");
+        }, 720);
+      };
+
+      const showNextForMode = (mode, animate = false) => {
+        const pool = poolFor(mode);
+        const next = nextSequential(pool, mode);
+
         if (!photo || !next) return;
 
-        photo.classList.remove("photo-change");
-        const separator = next.includes("?") ? "&" : "?";
-        photo.src = next + separator + "v=" + encodeURIComponent(buildId);
-        void photo.offsetWidth;
-        photo.classList.add("photo-change");
+        photo.src = versionedUrl(next);
+
+        // 順序模式可預先載入下一張，因此下一次開啟/旋轉通常會更快。
+        preload(peekSequential(pool, mode));
+
+        const otherMode = mode === "portrait" ? "landscape" : "portrait";
+        preload(peekSequential(poolFor(otherMode), otherMode));
+
+        if (animate) animateOrientation();
       };
 
-      const refresh = () => {
+      const applyOrientationIfChanged = (animate = true) => {
         updateViewport();
-        setPhotoForOrientation(false);
+        const mode = currentMode();
+
+        if (mode === lastMode) return;
+
+        lastMode = mode;
+        showNextForMode(mode, animate);
       };
 
-      updateViewport();
-      setPhotoForOrientation(true);
+      const scheduleOrientationCheck = () => {
+        updateViewport();
 
-      window.addEventListener("resize", refresh, {passive:true});
-      window.addEventListener("orientationchange", () => {
-        setTimeout(() => {
-          updateViewport();
-          setPhotoForOrientation(true);
-        }, 80);
-      }, {passive:true});
+        clearTimeout(orientationTimer);
+        orientationTimer = window.setTimeout(() => {
+          applyOrientationIfChanged(true);
+        }, 100);
+      };
+
+      // 初次進入：先決定方向，再照該組目前順序顯示。
+      updateViewport();
+      lastMode = currentMode();
+      showNextForMode(lastMode, false);
+
+      // 原本的開場動畫結束後，切換成可重複使用的旋轉動畫模式。
+      window.setTimeout(() => {
+        document.body.classList.add("opening-finished");
+      }, 1150);
+
+      // 各家手機對旋轉事件的支援不完全一致，所以多路監聽，
+      // 但真正換圖只會在 portrait/landscape 確實改變時執行一次。
+      window.addEventListener("orientationchange", scheduleOrientationCheck, {passive:true});
+      window.addEventListener("resize", scheduleOrientationCheck, {passive:true});
+
+      const portraitQuery = window.matchMedia
+        ? window.matchMedia("(orientation: portrait)")
+        : null;
+
+      if (portraitQuery) {
+        if (portraitQuery.addEventListener) {
+          portraitQuery.addEventListener("change", scheduleOrientationCheck);
+        } else if (portraitQuery.addListener) {
+          portraitQuery.addListener(scheduleOrientationCheck);
+        }
+      }
+
+      if (window.screen && window.screen.orientation &&
+          window.screen.orientation.addEventListener) {
+        window.screen.orientation.addEventListener("change", scheduleOrientationCheck);
+      }
 
       if (window.visualViewport) {
-        window.visualViewport.addEventListener("resize", refresh, {passive:true});
+        window.visualViewport.addEventListener("resize", scheduleOrientationCheck, {passive:true});
         window.visualViewport.addEventListener("scroll", updateViewport, {passive:true});
       }
+
+      // 從瀏覽器返回快取頁面時也重新校正方向。
+      window.addEventListener("pageshow", (event) => {
+        updateViewport();
+        if (event.persisted) scheduleOrientationCheck();
+      });
     })();
   </script>
 </body>
