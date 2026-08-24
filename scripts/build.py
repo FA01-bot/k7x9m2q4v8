@@ -25,13 +25,23 @@ target.mkdir(parents=True)
 
 image_exts = {".jpg", ".jpeg", ".png", ".webp", ".avif"}
 
+def natural_key(path):
+    # 01.jpg, 02.jpg, 10.jpg will be ordered as 1, 2, 10.
+    text = path.as_posix().lower()
+    return [
+        int(part) if part.isdigit() else part
+        for part in re.split(r"(\\d+)", text)
+    ]
+
 def collect(folder):
     if not folder.exists():
         return []
-    return [
-        f for f in sorted(folder.rglob("*"))
+
+    files = [
+        f for f in folder.rglob("*")
         if f.is_file() and f.suffix.lower() in image_exts
     ]
+    return sorted(files, key=natural_key)
 
 portrait_sources = collect(site / "portrait") + collect(site / "images" / "portrait")
 landscape_sources = collect(site / "landscape") + collect(site / "images" / "landscape")
