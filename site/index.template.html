@@ -23,15 +23,15 @@
 
       /*
         名片永遠跟著目前可視範圍調整，但不貼滿瀏覽器邊界。
-        手機約 12px，較大的螢幕會自然增加到最多 24px。
+        一般手機約 18px，較大的螢幕會自然增加到最多 34px。
       */
-      --outer-gap:clamp(12px,2.4vmin,24px);
+      --outer-gap:clamp(18px,3.2vmin,34px);
 
       /*
         橫向右側工具列左右留白統一用同一個值，
         避免左邊到圖片與右邊到名片邊界看起來不一致。
       */
-      --toolbar-gap-x:clamp(10px,1vw,14px);
+      --toolbar-gap-x:clamp(12px,1.15vw,16px);
 
       /* JS 會用 visualViewport 的真正可視範圍更新這兩個值 */
       --vwpx:100vw;
@@ -335,7 +335,7 @@
 
     @media (max-width:340px){
       :root{
-        --outer-gap:10px;
+        --outer-gap:13px;
       }
     }
 
@@ -400,42 +400,42 @@
         min-height:0;
         min-width:0;
 
+        /*
+          橫向時 5 個按鈕直接平均分成 5 排。
+          quick-actions 用 display:contents，所以 Email / Discord /
+          LINE / Phone 會和 Instagram 一起參與同一個 grid。
+        */
         display:grid;
-        grid-template-rows:minmax(0,1fr) auto;
-        gap:clamp(7px,1.6vh,12px);
+        grid-template-rows:repeat(5,minmax(0,1fr));
+        gap:clamp(8px,1.35vh,12px);
 
-        /*
-          上下間距可隨高度縮放；
-          左右則完全共用同一個 toolbar-gap-x。
-        */
-        padding-block:clamp(8px,1.6vh,14px);
-        padding-inline:var(--toolbar-gap-x);
+        padding-block:clamp(10px,1.8vh,16px);
+        padding-inline:0;
 
-        /*
-          用 inset 線取代 border-left。
-          線不再佔 box model 寬度，所以左右留白是真正對稱的。
-        */
         border-left:0;
         box-shadow:inset 1px 0 rgba(255,255,255,.08);
       }
 
       .quick-actions{
-        width:100%;
-        height:100%;
-        min-height:0;
+        display:contents;
+      }
 
-        display:grid;
-        grid-template-columns:minmax(0,1fr);
-        grid-template-rows:repeat(4,minmax(0,1fr));
-
-        gap:clamp(6px,1.1vh,10px);
-        margin:0;
+      /*
+        重要：橫向 5 等分時 divider 不能參與 grid。
+        DOM 裡它位於 Phone 與 Instagram 之間；
+        如果不隱藏，實際會變成 6 個 grid item，
+        第 5 格被空 divider 吃掉，IG 就會被擠到最底下。
+      */
+      .divider{
+        display:none;
       }
 
       .quick{
-        width:100%;
+        width:calc(100% - (var(--toolbar-gap-x) * 2));
         height:100%;
         min-height:0;
+        justify-self:center;
+        align-self:stretch;
 
         display:flex;
         flex-direction:column;
@@ -462,22 +462,39 @@
       }
 
       .instagram{
-        width:100%;
-        min-height:clamp(42px,7.8vh,56px);
+        /*
+          和上面四顆完全相同的外框尺寸；
+          唯一差別是保留粉紫漸層，讓 IG 視覺上突出。
+        */
+        width:calc(100% - (var(--toolbar-gap-x) * 2));
+        height:100%;
+        min-height:0;
+        justify-self:center;
+        align-self:stretch;
+
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+
         border-radius:clamp(12px,1.2vw,16px);
-        gap:clamp(6px,.8vw,10px);
-        padding:0 clamp(8px,1vw,14px);
+        gap:clamp(3px,.8vh,6px);
+        padding:4px 2px;
         white-space:nowrap;
       }
 
       .instagram span{
-        display:inline;
-        font-size:clamp(.66rem,1.55vh,.86rem);
+        display:block;
+        color:#fff;
+        font-size:clamp(.50rem,1.45vh,.68rem);
+        line-height:1;
+        font-weight:700;
       }
 
       .instagram svg{
-        width:clamp(22px,4.2vh,30px);
-        height:clamp(22px,4.2vh,30px);
+        width:clamp(22px,4.2vh,31px);
+        height:clamp(22px,4.2vh,31px);
+        flex:0 0 auto;
       }
     }
 
@@ -488,8 +505,8 @@
       }
 
       .contact-panel{
-        padding-block:clamp(10px,1.8vh,16px);
-        padding-inline:var(--toolbar-gap-x);
+        padding-block:clamp(12px,2vh,18px);
+        padding-inline:0;
       }
     }
 
@@ -500,12 +517,8 @@
       }
 
       .contact-panel{
-        padding-block:5px;
-        padding-inline:7px;
-        gap:5px;
-      }
-
-      .quick-actions{
+        padding-block:6px;
+        padding-inline:0;
         gap:4px;
       }
 
@@ -530,10 +543,11 @@
       }
 
       .instagram{
-        min-height:31px;
+        height:100%;
+        min-height:0;
         border-radius:10px;
-        gap:4px;
-        padding:0 5px;
+        gap:3px;
+        padding:2px;
       }
 
       .instagram span{
@@ -541,8 +555,8 @@
       }
 
       .instagram svg{
-        width:17px;
-        height:17px;
+        width:19px;
+        height:19px;
       }
 
       .intro{
