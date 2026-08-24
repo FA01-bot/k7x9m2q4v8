@@ -1181,13 +1181,8 @@
       stroke:none;
     }
 
-    .qr-view[hidden],
     .more-main[hidden]{
       display:none!important;
-    }
-
-    .qr-view .more-head{
-      grid-template-columns:auto minmax(0,1fr) auto;
     }
 
     .qr-head-copy{
@@ -1258,6 +1253,13 @@
       .more-action svg{
         width:23px;
         height:23px;
+      }
+
+      .qr-card{
+        width:min(42vh,240px);
+        margin:4px auto 8px;
+        padding:10px;
+        border-radius:18px;
       }
     }
 
@@ -2125,11 +2127,14 @@
             <span>加入聯絡人</span>
           </button>
 
-          <button class="more-action" id="copy-link" type="button">
+          <button class="more-action" id="share-card" type="button">
             <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M9.8 14.2 14.2 9.8M7.2 16.8l-1.1 1.1a3.5 3.5 0 0 1-5-5l3.3-3.3a3.5 3.5 0 0 1 5 0M16.8 7.2l1.1-1.1a3.5 3.5 0 1 1 5 5l-3.3 3.3a3.5 3.5 0 0 1-5 0"/>
+              <circle cx="18" cy="5" r="2.2"></circle>
+              <circle cx="6" cy="12" r="2.2"></circle>
+              <circle cx="18" cy="19" r="2.2"></circle>
+              <path d="m8 11 8-4.7M8 13l8 4.7"/>
             </svg>
-            <span>複製網址</span>
+            <span>分享名片</span>
           </button>
 
           <button class="more-action" id="copy-data" type="button">
@@ -2141,6 +2146,7 @@
           </button>
         </div>
       </div>
+
       <div class="copy-view" id="copy-view" hidden>
         <header class="more-head">
           <button class="qr-back" id="copy-back" type="button" aria-label="返回">
@@ -3446,8 +3452,8 @@
       const copyClose =
         document.getElementById("copy-close");
 
-      const copyLinkBtn =
-        document.getElementById("copy-link");
+      const shareBtn =
+        document.getElementById("share-card");
 
       const addContactBtn =
         document.getElementById("add-contact");
@@ -3548,7 +3554,6 @@
 
       const openCopy = () => {
         main.hidden = true;
-        qrView.hidden = true;
         copyView.hidden = false;
 
         copyBack?.focus({
@@ -3596,16 +3601,6 @@
         openCopy
       );
 
-      copyLinkBtn?.addEventListener(
-        "click",
-        () => {
-          copyText(
-            location.href,
-            "名片網址已複製"
-          );
-        }
-      );
-
       /*
         加入聯絡人只存在手機版。
         不使用 download=，讓瀏覽器直接把 contact.vcf
@@ -3619,6 +3614,17 @@
           );
         }
       );
+
+      shareBtn?.addEventListener(
+        "click",
+        async () => {
+          if (navigator.share) {
+            try {
+              await navigator.share({
+                title:document.title,
+                text:"__CARD_NAME__ 的數位名片",
+                url:location.href
+              });
 
               return;
             } catch (error) {
