@@ -1568,7 +1568,13 @@
       top 值避開卡片圓角與照片邊界。
     */
     .device-mobile .hero-mobile-help.help-top-right{
-      top:clamp(16px,2.6vh,24px);
+      /*
+        右上角模式：上方與右側使用完全相同的安全間距，
+        並比上一版更靠近角落。
+      */
+      --help-corner-gap:clamp(12px,3vw,17px);
+      top:var(--help-corner-gap);
+      right:var(--help-corner-gap);
       bottom:auto;
     }
 
@@ -1665,8 +1671,9 @@
     */
     @media (orientation:landscape){
       .device-mobile .hero-mobile-help{
-        top:clamp(10px,2.5vh,17px);
-        right:clamp(11px,1.9vw,18px);
+        --help-corner-gap:clamp(10px,2.4vh,15px);
+        top:var(--help-corner-gap);
+        right:var(--help-corner-gap);
         bottom:auto;
         gap:6px;
         max-width:min(40%,165px);
