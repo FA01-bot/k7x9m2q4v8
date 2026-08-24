@@ -1502,6 +1502,156 @@
     }
 
 
+
+    /* ---------------------------------------------------------------
+       手機照片操作提示 / 播放控制
+       --------------------------------------------------------------- */
+    .hero-mobile-help{
+      display:none;
+    }
+
+    .device-mobile .hero-mobile-help{
+      position:absolute;
+      z-index:6;
+      right:clamp(14px,4vw,22px);
+      bottom:clamp(16px,2.7vh,26px);
+
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      gap:9px;
+
+      max-width:min(48%,190px);
+
+      color:rgba(255,255,255,.78);
+      text-shadow:
+        0 1px 7px rgba(0,0,0,.72),
+        0 0 2px rgba(0,0,0,.38);
+
+      pointer-events:auto;
+    }
+
+    .hero-hint{
+      min-width:0;
+      display:grid;
+      gap:2px;
+
+      font-size:clamp(.57rem,2.25vw,.70rem);
+      font-weight:580;
+      line-height:1.22;
+      text-align:right;
+      letter-spacing:.01em;
+
+      opacity:.82;
+      pointer-events:none;
+    }
+
+    .hero-hint span{
+      white-space:nowrap;
+    }
+
+    .playback-toggle{
+      appearance:none;
+      flex:0 0 auto;
+
+      width:clamp(34px,9.5vw,40px);
+      height:clamp(34px,9.5vw,40px);
+
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:50%;
+
+      display:grid;
+      place-items:center;
+
+      background:rgba(27,32,48,.46);
+      color:#fff;
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.08),
+        0 5px 18px rgba(0,0,0,.18);
+
+      backdrop-filter:blur(8px);
+      -webkit-backdrop-filter:blur(8px);
+
+      -webkit-tap-highlight-color:transparent;
+      cursor:pointer;
+
+      transition:
+        transform .14s ease,
+        background .20s ease,
+        border-color .20s ease;
+    }
+
+    .playback-toggle:active{
+      transform:scale(.92);
+    }
+
+    .playback-toggle svg{
+      grid-area:1 / 1;
+      width:18px;
+      height:18px;
+      fill:currentColor;
+
+      transition:
+        opacity .18s ease,
+        transform .18s ease;
+    }
+
+    .playback-toggle .play-symbol{
+      opacity:0;
+      transform:scale(.72);
+    }
+
+    .playback-toggle[aria-pressed="true"]{
+      background:rgba(255,179,193,.17);
+      border-color:rgba(255,179,193,.34);
+      color:var(--pink);
+    }
+
+    .playback-toggle[aria-pressed="true"] .pause-symbol{
+      opacity:0;
+      transform:scale(.72);
+    }
+
+    .playback-toggle[aria-pressed="true"] .play-symbol{
+      opacity:1;
+      transform:scale(1);
+    }
+
+    /*
+      橫向手機空間較少，提示改成更精簡，
+      但暫停按鈕仍保留。
+    */
+    @media (orientation:landscape){
+      .device-mobile .hero-mobile-help{
+        right:clamp(12px,2vw,20px);
+        bottom:clamp(10px,2.8vh,18px);
+        gap:7px;
+        max-width:min(44%,180px);
+      }
+
+      .device-mobile .hero-hint{
+        font-size:clamp(.50rem,1.55vh,.63rem);
+      }
+
+      .device-mobile .playback-toggle{
+        width:clamp(30px,7.3vh,36px);
+        height:clamp(30px,7.3vh,36px);
+      }
+
+      .device-mobile .playback-toggle svg{
+        width:16px;
+        height:16px;
+      }
+    }
+
+    @media (orientation:landscape) and (max-height:360px){
+      .device-mobile .hero-hint{
+        display:none;
+      }
+    }
+
+
     /* 開場動畫 */
     @keyframes cardEnter{
       from{
@@ -1612,6 +1762,30 @@
           以及平凡生活裡的小確幸<br>
           訊息慢回，生活優先 🎧
         </p>
+      </div>
+
+      <div class="hero-mobile-help" aria-label="照片操作提示">
+        <div class="hero-hint">
+          <span>點一下全螢幕</span>
+          <span>左右滑切換照片</span>
+        </div>
+
+        <button
+          class="playback-toggle"
+          id="playback-toggle"
+          type="button"
+          aria-label="暫停照片播放"
+          aria-pressed="false"
+        >
+          <svg class="pause-symbol" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="7" y="5" width="3.5" height="14" rx="1.3"></rect>
+            <rect x="13.5" y="5" width="3.5" height="14" rx="1.3"></rect>
+          </svg>
+
+          <svg class="play-symbol" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8.2 5.8a1.4 1.4 0 0 1 2.12-1.18l8.1 6.2a1.48 1.48 0 0 1 0 2.36l-8.1 6.2A1.4 1.4 0 0 1 8.2 18.2V5.8Z"></path>
+          </svg>
+        </button>
       </div>
     </section>
 
@@ -1905,6 +2079,7 @@
       const viewerStage = document.getElementById("photo-viewer-stage");
       const viewerImage = document.getElementById("photo-viewer-image");
       const viewerClose = document.getElementById("photo-viewer-close");
+      const playbackToggle = document.getElementById("playback-toggle");
 
       const manifest = __IMAGE_MANIFEST_JSON__;
       const buildId = __IMAGE_BUILD_ID_JSON__;
@@ -1928,6 +2103,7 @@
       let zoomFrame = 0;
       let zoomGeneration = 0;
       let viewerOpen = false;
+      let playbackPaused = false;
 
       const INITIAL_ZOOM_SPEED = 0.035;
       const BASE_SCALE = 1.01;
@@ -2094,8 +2270,45 @@
         }
       };
 
-      const startRateBasedZoom = (layer) => {
-        if (!layer || viewerOpen) return;
+      const renderedScale = (layer) => {
+        if (!layer) return BASE_SCALE;
+
+        const transform = getComputedStyle(layer).transform;
+
+        if (!transform || transform === "none") {
+          return BASE_SCALE;
+        }
+
+        try {
+          const matrix = new DOMMatrixReadOnly(transform);
+          const scale = Math.hypot(matrix.a, matrix.b);
+          return Number.isFinite(scale) && scale > 0
+            ? scale
+            : BASE_SCALE;
+        } catch (_) {
+          const match = transform.match(
+            /matrix\(([^,]+),([^,]+),/
+          );
+
+          if (!match) return BASE_SCALE;
+
+          const a = Number.parseFloat(match[1]);
+          const b = Number.parseFloat(match[2]);
+          const scale = Math.hypot(a, b);
+
+          return Number.isFinite(scale) && scale > 0
+            ? scale
+            : BASE_SCALE;
+        }
+      };
+
+      const startRateBasedZoom = (layer, preserveScale = false) => {
+        if (!layer || viewerOpen || playbackPaused) return;
+
+        const startingScale =
+          preserveScale
+            ? renderedScale(layer)
+            : BASE_SCALE;
 
         stopZoom();
 
@@ -2103,7 +2316,7 @@
         const startedAt = performance.now();
 
         let lastAt = startedAt;
-        let scale = BASE_SCALE;
+        let scale = startingScale;
 
         layer.style.transform = `scale(${scale})`;
         layer.classList.add("is-zooming");
@@ -2137,6 +2350,7 @@
             if (
               !switching &&
               !viewerOpen &&
+              !playbackPaused &&
               lastMode &&
               !document.hidden
             ) {
@@ -2298,8 +2512,11 @@
 
           if (viewerOpen) {
             syncViewerToActive();
-          } else {
+          } else if (!playbackPaused) {
             startZoom(newLayer);
+          } else {
+            newLayer.style.transform =
+              `scale(${BASE_SCALE})`;
           }
         });
 
@@ -2415,9 +2632,10 @@
         if (
           active &&
           active.classList.contains("is-active") &&
-          !document.hidden
+          !document.hidden &&
+          !playbackPaused
         ) {
-          startRateBasedZoom(active);
+          startRateBasedZoom(active, true);
         }
       };
 
@@ -2490,6 +2708,13 @@
           "touchend",
           (event) => {
             if (!isMobileDevice()) return;
+
+            if (
+              event.target instanceof Element &&
+              event.target.closest(".hero-mobile-help")
+            ) {
+              return;
+            }
 
             const touch =
               event.changedTouches &&
@@ -2614,10 +2839,11 @@
 
             if (
               !viewerOpen &&
+              !playbackPaused &&
               active &&
               active.classList.contains("is-active")
             ) {
-              startRateBasedZoom(active);
+              startRateBasedZoom(active, true);
             }
           }
         }
@@ -2635,12 +2861,73 @@
 
             if (
               !viewerOpen &&
+              !playbackPaused &&
               active &&
               active.classList.contains("is-active")
             ) {
-              startRateBasedZoom(active);
+              startRateBasedZoom(active, true);
             }
           }
+        }
+      );
+
+      const updatePlaybackButton = () => {
+        if (!playbackToggle) return;
+
+        playbackToggle.setAttribute(
+          "aria-pressed",
+          playbackPaused ? "true" : "false"
+        );
+
+        playbackToggle.setAttribute(
+          "aria-label",
+          playbackPaused
+            ? "繼續照片播放"
+            : "暫停照片播放"
+        );
+      };
+
+      const setPlaybackPaused = (paused) => {
+        playbackPaused = Boolean(paused);
+        updatePlaybackButton();
+
+        const active = layers[activeLayer];
+
+        if (playbackPaused) {
+          /*
+            stopZoom 只停止 requestAnimationFrame，
+            不清掉 inline transform，所以照片會停在當下放大位置。
+          */
+          clearSlideshow();
+          stopZoom();
+          return;
+        }
+
+        if (
+          active &&
+          active.classList.contains("is-active") &&
+          !viewerOpen &&
+          !document.hidden
+        ) {
+          /*
+            preserveScale=true：
+            從暫停時的比例繼續，不會突然縮回 1.01。
+          */
+          startRateBasedZoom(active, true);
+        }
+      };
+
+      updatePlaybackButton();
+
+      playbackToggle?.addEventListener(
+        "click",
+        (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          setPlaybackPaused(
+            !playbackPaused
+          );
         }
       );
 
