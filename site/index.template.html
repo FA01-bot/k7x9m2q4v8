@@ -847,6 +847,14 @@
     }
 
 
+
+    .desktop-copy-phone{
+      appearance:none;
+      -webkit-appearance:none;
+      font:inherit;
+      cursor:pointer;
+    }
+
     /* ---------------------------------------------------------------
        電腦 / 行動裝置分流
        --------------------------------------------------------------- */
@@ -1840,7 +1848,11 @@
 
     <section class="contact-panel desktop-contact-panel" aria-label="聯絡方式">
       <div class="quick-actions">
-        <a class="quick" href="mailto:__CARD_EMAIL__" aria-label="寄 Email">
+        <a class="quick"
+           href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=__CARD_EMAIL__"
+           target="_blank"
+           rel="noopener"
+           aria-label="使用 Gmail 網頁版寄信">
           <svg class="brand-logo brand-gmail" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M2.4 5.1A1.4 1.4 0 0 1 4.5 4L12 9.55 19.5 4a1.4 1.4 0 0 1 2.1 1.1v13.4A1.5 1.5 0 0 1 20.1 20H18V9.25l-6 4.45-6-4.45V20H3.9a1.5 1.5 0 0 1-1.5-1.5V5.1Z"/>
           </svg>
@@ -1869,12 +1881,19 @@
           <span class="quick-label">LINE</span><span class="sr-only">LINE</span>
         </a>
 
-        <a class="quick" href="tel:__CARD_PHONE__" aria-label="撥打電話">
+        <button
+          class="quick desktop-copy-phone"
+          id="desktop-copy-phone"
+          type="button"
+          data-phone="__CARD_PHONE__"
+          aria-label="複製電話號碼"
+          title="點一下複製電話號碼"
+        >
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M6.62 10.79a15.47 15.47 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.58a1 1 0 0 1-.25 1.02l-2.2 2.19Z"/>
           </svg>
-          <span class="quick-label">Phone</span><span class="sr-only">電話</span>
-        </a>
+          <span class="quick-label">Phone</span><span class="sr-only">複製電話號碼</span>
+        </button>
 
         <a class="instagram" href="__CARD_IG_URL__" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -3675,6 +3694,84 @@
           closeSheet();
         }
       );
+    })();
+  </script>
+
+
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const phoneButton = document.getElementById("desktop-copy-phone");
+      const toast = document.getElementById("copy-toast");
+
+      if (
+        !phoneButton ||
+        !root.classList.contains("device-desktop")
+      ) {
+        return;
+      }
+
+      let toastTimer = 0;
+
+      const showToast = (text) => {
+        if (!toast) return;
+
+        toast.textContent = text;
+        toast.classList.remove("show");
+        void toast.offsetWidth;
+        toast.classList.add("show");
+
+        clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => {
+          toast.classList.remove("show");
+        }, 1600);
+      };
+
+      const copyText = async (text) => {
+        try {
+          if (
+            navigator.clipboard &&
+            window.isSecureContext
+          ) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const textarea = document.createElement("textarea");
+            textarea.value = text;
+            textarea.setAttribute("readonly", "");
+            textarea.style.position = "fixed";
+            textarea.style.opacity = "0";
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            textarea.remove();
+          }
+          return true;
+        } catch (_) {
+          return false;
+        }
+      };
+
+      phoneButton.addEventListener("click", async () => {
+        const phone = phoneButton.dataset.phone || "";
+        if (!phone) return;
+
+        const ok = await copyText(phone);
+
+        if (ok) {
+          showToast("電話號碼已複製");
+
+          const label = phoneButton.querySelector(".quick-label");
+          const oldText = label?.textContent || "Phone";
+
+          if (label) label.textContent = "Copied";
+
+          window.setTimeout(() => {
+            if (label) label.textContent = oldText;
+          }, 1000);
+        } else {
+          showToast("無法自動複製");
+        }
+      });
     })();
   </script>
 
