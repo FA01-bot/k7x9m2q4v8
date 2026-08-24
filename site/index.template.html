@@ -38,13 +38,13 @@
             <span>撥打電話</span>
           </a>
 
-          <a class="more-action" href="contact.vcf">
+          <button class="more-action" id="add-contact" type="button">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="9" cy="8" r="3"></circle>
               <path d="M3.8 18.8c.4-3.6 2.4-5.5 5.2-5.5s4.8 1.9 5.2 5.5M18 7v6M15 10h6"/>
             </svg>
             <span>加入聯絡人</span>
-          </a>
+          </button>
 
           <button class="more-action" id="share-card" type="button">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -79,6 +79,10 @@
             <span>複製電話</span>
           </button>
         </div>
+
+        <p class="contact-hint" id="contact-hint">
+          加入聯絡人時會交由手機系統開啟聯絡人卡片。
+        </p>
       </div>
 
       <div class="qr-view" id="qr-view" hidden>
@@ -975,7 +979,7 @@
       grid-column:1 / -1;
 
       min-height:clamp(39px,5.25vh,51px);
-      border:1px solid rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.10);
       border-radius:clamp(14px,3vw,20px);
 
       display:flex;
@@ -983,23 +987,36 @@
       justify-content:center;
       gap:8px;
 
-      background:rgba(255,255,255,.035);
-      color:var(--pink);
+      /*
+        手機版「更多」承接原本 IG 的視覺重點。
+        Instagram 本身改回一般 quick，不再突出。
+      */
+      background:linear-gradient(100deg,#c779e4 0%,#db84b1 48%,#e77b86 100%);
+      color:#fff;
 
       font:inherit;
       font-size:clamp(.82rem,1.7vh,1.04rem);
       font-weight:700;
 
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.16),
+        0 7px 18px rgba(183,89,135,.12);
+
       -webkit-tap-highlight-color:transparent;
       cursor:pointer;
-      transition:transform .14s ease,background .14s ease,border-color .14s ease;
+
+      transition:
+        transform .14s ease,
+        filter .14s ease,
+        box-shadow .14s ease;
     }
 
     .mobile-contact-panel .more-trigger:active{
       transform:scale(.975);
-      background:rgba(255,255,255,.07);
-      border-color:rgba(255,255,255,.13);
+      filter:brightness(.96);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.12),
+        0 4px 12px rgba(183,89,135,.08);
     }
 
     .mobile-contact-panel .more-trigger svg{
@@ -1080,14 +1097,16 @@
         max(14px,env(safe-area-inset-bottom))
         max(14px,env(safe-area-inset-left));
 
-      opacity:0;
+      /*
+        overlay 本身不再做淡入動畫。
+        class 一加上就立刻可互動，真正的動畫由
+        backdrop + sheet 同時開始，避免「選單先跑、背景後糊」。
+      */
       visibility:hidden;
       pointer-events:none;
-      transition:opacity .30s ease,visibility .30s ease;
     }
 
     .more-overlay.open{
-      opacity:1;
       visibility:visible;
       pointer-events:auto;
     }
@@ -1096,9 +1115,27 @@
       position:absolute;
       inset:0;
       border:0;
+
       background:rgba(7,10,20,.58);
-      backdrop-filter:blur(10px);
-      -webkit-backdrop-filter:blur(10px);
+
+      /*
+        初始：完全不糊、透明。
+        open 的同一 frame 內，與 bottom sheet 同時開始 360ms 動畫。
+      */
+      opacity:0;
+      backdrop-filter:blur(0);
+      -webkit-backdrop-filter:blur(0);
+
+      transition:
+        opacity .36s cubic-bezier(.22,.78,.24,1),
+        backdrop-filter .36s cubic-bezier(.22,.78,.24,1),
+        -webkit-backdrop-filter .36s cubic-bezier(.22,.78,.24,1);
+    }
+
+    .more-overlay.open .more-backdrop{
+      opacity:1;
+      backdrop-filter:blur(12px);
+      -webkit-backdrop-filter:blur(12px);
     }
 
     .more-sheet{
@@ -1126,7 +1163,7 @@
 
       transition:
         transform .36s cubic-bezier(.22,.78,.24,1),
-        opacity .28s ease;
+        opacity .36s cubic-bezier(.22,.78,.24,1);
     }
 
     .more-overlay.open .more-sheet{
@@ -1237,6 +1274,21 @@
     .more-action svg path:first-child[fill]{
       fill:var(--pink);
       stroke:none;
+    }
+
+
+    .contact-hint{
+      margin:12px 6px 0;
+      color:rgba(255,255,255,.46);
+      font-size:.66rem;
+      line-height:1.45;
+      text-align:center;
+    }
+
+    @media (orientation:landscape) and (max-height:620px){
+      .contact-hint{
+        display:none;
+      }
     }
 
     .qr-view[hidden],
@@ -2070,6 +2122,8 @@
       const shareBtn = document.getElementById("share-card");
       const copyLinkBtn = document.getElementById("copy-link");
       const copyPhoneBtn = document.getElementById("copy-phone");
+      const addContactBtn = document.getElementById("add-contact");
+      const contactHint = document.getElementById("contact-hint");
       const toast = document.getElementById("copy-toast");
 
       if (!overlay || !trigger) return;
@@ -2160,6 +2214,42 @@
 
       copyPhoneBtn?.addEventListener("click",() => {
         copyText("__CARD_PHONE__","電話號碼已複製");
+      });
+
+      /*
+        加入聯絡人只存在手機版 More。
+        瀏覽器本身不能靜默寫入系統聯絡人，所以最後仍需要
+        iOS / Android 的聯絡人介面讓使用者確認。
+
+        iPhone/iPad：直接導向 .vcf，Safari 通常會交給 vCard 預覽。
+        Android：直接開啟 .vcf，交由系統/聯絡人 App 處理。
+        不使用 Blob / download 屬性，避免把它刻意變成「下載附件」流程。
+      */
+      const mobilePlatform = (() => {
+        const ua = navigator.userAgent || "";
+        const iPadDesktopUA =
+          navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+
+        if (/iPhone|iPad|iPod/i.test(ua) || iPadDesktopUA) return "ios";
+        if (/Android/i.test(ua)) return "android";
+        return "mobile";
+      })();
+
+      if (contactHint) {
+        contactHint.textContent =
+          mobilePlatform === "ios"
+            ? "點「加入聯絡人」後，iPhone 會開啟 vCard，最後由你確認新增。"
+            : mobilePlatform === "android"
+              ? "點「加入聯絡人」後，Android 會交給系統或聯絡人 App 開啟。"
+              : "加入聯絡人時會交由手機系統開啟聯絡人卡片。";
+      }
+
+      addContactBtn?.addEventListener("click",() => {
+        /*
+          使用同頁導向而不是 download=，讓瀏覽器有機會直接交給
+          系統 vCard 處理器。這是純網頁能做到最接近「直接加入」的方式。
+        */
+        window.location.assign("contact.vcf");
       });
 
       shareBtn?.addEventListener("click",async () => {
