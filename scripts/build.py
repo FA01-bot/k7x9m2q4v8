@@ -1,7 +1,6 @@
 from pathlib import Path
 import os, html, re, shutil, json, hashlib
 from PIL import Image, ImageOps
-import qrcode
 
 required = [
     "CARD_PATH","CARD_NAME","CARD_PHONE","CARD_EMAIL",
@@ -167,41 +166,6 @@ for token, value in vcf_vals.items():
     encoding="utf-8",
     newline="\r\n"
 )
-
-# ------------------------------------------------------------------
-# QR Code for the deployed card URL.
-# This avoids loading a third-party QR service or JS library at runtime.
-# ------------------------------------------------------------------
-repo_full = os.environ.get("GITHUB_REPOSITORY", "").strip()
-owner = os.environ.get("GITHUB_REPOSITORY_OWNER", "").strip()
-
-if repo_full and "/" in repo_full:
-    repo_owner, repo_name = repo_full.split("/", 1)
-    if not owner:
-        owner = repo_owner
-else:
-    # Current repository fallback; GITHUB_REPOSITORY is present in Actions.
-    owner = owner or "FA01-bot"
-    repo_name = "k7x9m2q4v8"
-
-card_url = f"https://{owner.lower()}.github.io/{repo_name}/{card_path}/"
-
-qr = qrcode.QRCode(
-    version=None,
-    error_correction=qrcode.constants.ERROR_CORRECT_M,
-    box_size=9,
-    border=4,
-)
-qr.add_data(card_url)
-qr.make(fit=True)
-
-qr_img = qr.make_image(
-    fill_color="#121728",
-    back_color="#ffffff"
-).convert("RGB")
-qr_img.save(target / "qr.png", optimize=True)
-
-print(f"QR generated for: {card_url}")
 
 (out / "robots.txt").write_text(
     "User-agent: *\nDisallow: /\n",
