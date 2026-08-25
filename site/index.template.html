@@ -43,19 +43,10 @@
       --text:#fff7f6;
       --pink:#ffb3c1;
 
-      /*
-        名片永遠跟著目前可視範圍調整，但不貼滿瀏覽器邊界。
-        一般手機約 18px，較大的螢幕會自然增加到最多 34px。
-      */
       --outer-gap:clamp(18px,3.2vmin,34px);
 
-      /*
-        橫向右側工具列左右留白統一用同一個值，
-        避免左邊到圖片與右邊到名片邊界看起來不一致。
-      */
       --toolbar-gap-x:clamp(12px,1.15vw,16px);
 
-      /* JS 會用 visualViewport 的真正可視範圍更新這兩個值 */
       --vwpx:100vw;
       --vhpx:100vh;
     }
@@ -78,10 +69,6 @@
     body{
       color:var(--text);
 
-      /*
-        網頁能要求「系統 UI 字體」，但 Chrome/Safari 不一定會把
-        手機主題商店或 OEM 自訂字體暴露給網頁。
-      */
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 
       background:
@@ -100,10 +87,6 @@
       place-items:center;
       overflow:hidden;
 
-      /*
-        safe-area 與我們自己的外距取較大值。
-        所以有瀏海 / 圓角螢幕時也不會貼邊。
-      */
       padding:
         max(var(--outer-gap), env(safe-area-inset-top))
         max(var(--outer-gap), env(safe-area-inset-right))
@@ -112,10 +95,7 @@
     }
 
     .card{
-      /*
-        直向仍維持最多 460 × 900，
-        但寬高改成吃「viewport 扣掉外距後」的可用空間。
-      */
+
       width:min(100%,460px);
       height:min(100%,900px);
       min-height:0;
@@ -260,10 +240,6 @@
       overflow:visible;
     }
 
-    /*
-      品牌圖示統一用同一個視覺框。
-      Gmail 略縮、LINE 略放大，讓肉眼大小跟 Discord / Phone 接近。
-    */
     .quick svg.brand-gmail{
       width:clamp(24px,4.35vh,29px);
       height:clamp(24px,4.35vh,29px);
@@ -374,7 +350,6 @@
       border:0!important;
     }
 
-    /* 極矮裝置：再壓縮文字與功能區，優先保證整張卡完整出現 */
     @media (max-height:620px){
       .contact-panel{padding:6px 12px 7px}
       .quick-actions{gap:6px;margin-bottom:0}
@@ -404,14 +379,6 @@
       }
     }
 
-
-
-
-    /*
-      橫向 / 電腦寬螢幕：
-      右側改成窄版工具列，四個聯絡方式垂直一排，
-      IG 放最下方而且只保留圖示。
-    */
     @media (orientation:landscape){
       .card{
         width:100%;
@@ -457,11 +424,6 @@
         min-height:0;
         min-width:0;
 
-        /*
-          橫向時 5 個按鈕直接平均分成 5 排。
-          quick-actions 用 display:contents，所以 Email / Discord /
-          LINE / Phone 會和 Instagram 一起參與同一個 grid。
-        */
         display:grid;
         grid-template-rows:minmax(0,1fr);
 
@@ -518,10 +480,7 @@
       }
 
       .instagram{
-        /*
-          和上面四顆完全相同的外框尺寸；
-          唯一差別是保留粉紫漸層，讓 IG 視覺上突出。
-        */
+    
         grid-column:auto;
         width:100%;
         height:100%;
@@ -555,7 +514,6 @@
       }
     }
 
-    /* 超寬桌面也維持窄工具列，不再把右側放大 */
     @media (orientation:landscape) and (min-width:1200px){
       .card{
         grid-template-columns:minmax(0,1fr) clamp(144px,9vw,178px);
@@ -567,7 +525,6 @@
       }
     }
 
-    /* 很矮的橫向手機：再縮一點，仍維持單欄 */
     @media (orientation:landscape) and (max-height:520px){
       .card{
         grid-template-columns:minmax(0,1fr) clamp(104px,17vw,126px);
@@ -631,13 +588,6 @@
       }
     }
 
-
-    /*
-      手機橫向：
-      之前 max-height:620 的通用規則會把標籤全部隱藏，
-      而 display:contents 在部分 Android 瀏覽器也會讓 IG 高度異常。
-      這裡強制恢復完整五等分與文字。
-    */
     @media (orientation:landscape) and (max-height:620px){
       .card{
         grid-template-columns:minmax(0,1fr) clamp(132px,18vw,154px);
@@ -704,7 +654,6 @@
       }
     }
 
-    /* 只有極端矮的橫向視窗才隱藏文字。 */
     @media (orientation:landscape) and (max-height:360px){
       .quick-label,
       .instagram span{
@@ -726,17 +675,6 @@
       animation:photoChange .45s ease-out both;
     }
 
-
-
-    /*
-      圖片層次固定為：
-      圖片 -> 灰色漸層 -> 文字
-
-      每張圖片：
-      1. 先完整載入
-      2. 交叉淡入約 2 秒
-      3. 同時做約 5.6 秒的緩慢放大
-    */
     .hero{
       isolation:isolate;
     }
@@ -761,10 +699,6 @@
       z-index:1;
     }
 
-    /*
-      放大不再用「從 A 倍數到 B 倍數」的固定 keyframe。
-      transform 由 JavaScript 依「速度 + 漸慢」逐幀計算。
-    */
     .hero-photo.is-active.is-zooming{
       will-change:transform,opacity,filter;
     }
@@ -777,18 +711,12 @@
       animation:none!important;
     }
 
-    /*
-      舊照片淡出時保持「當下已經放大的尺寸」，
-      不會在切換前突然跳回 1.01x。
-      實際 transform 由 JS 在淡出瞬間凍結。
-    */
     .hero-photo.is-outgoing{
       opacity:0;
       z-index:0;
       animation:none!important;
     }
 
-    /* 圖片 -> 漸層 -> 文字 */
     .hero::after{
       z-index:2;
     }
@@ -828,10 +756,6 @@
       transform:none;
     }
 
-    /*
-      旋轉期間如果新方向圖片還在下載，
-      舊圖片只稍微變柔，不會先消失。
-    */
     body.opening-finished .card.orientation-loading .hero-photo.is-active{
       opacity:.96;
       filter:saturate(.87) brightness(.90) contrast(.96);
@@ -855,9 +779,6 @@
       cursor:pointer;
     }
 
-    /* ---------------------------------------------------------------
-       電腦 / 行動裝置分流
-       --------------------------------------------------------------- */
     .mobile-contact-panel{
       display:none!important;
     }
@@ -874,11 +795,6 @@
       display:none!important;
     }
 
-    /*
-      手機主畫面：
-      Email / Discord / LINE / Instagram 四顆維持原本 quick 風格；
-      原本 IG 的全寬位置改成「更多」。
-    */
     .mobile-contact-panel .more-trigger{
       appearance:none;
       grid-column:1 / -1;
@@ -892,10 +808,6 @@
       justify-content:center;
       gap:8px;
 
-      /*
-        手機版「更多」承接原本 IG 的視覺重點。
-        Instagram 本身改回一般 quick，不再突出。
-      */
       background:linear-gradient(100deg,#c779e4 0%,#db84b1 48%,#e77b86 100%);
       color:#fff;
 
@@ -930,7 +842,6 @@
       fill:currentColor;
     }
 
-    /* 行動裝置橫向：5 顆等分，IG 不突出，「更多」也跟其他同尺寸。 */
     @media (orientation:landscape){
       .device-mobile .mobile-contact-panel{
         display:grid!important;
@@ -984,9 +895,6 @@
       }
     }
 
-    /* ---------------------------------------------------------------
-       更多：原生感 bottom sheet
-       --------------------------------------------------------------- */
     .more-overlay{
       position:fixed;
       inset:0;
@@ -1002,11 +910,6 @@
         max(14px,env(safe-area-inset-bottom))
         max(14px,env(safe-area-inset-left));
 
-      /*
-        overlay 本身不再做淡入動畫。
-        class 一加上就立刻可互動，真正的動畫由
-        backdrop + sheet 同時開始，避免「選單先跑、背景後糊」。
-      */
       visibility:hidden;
       pointer-events:none;
     }
@@ -1023,10 +926,6 @@
 
       background:rgba(7,10,20,.58);
 
-      /*
-        初始：完全不糊、透明。
-        open 的同一 frame 內，與 bottom sheet 同時開始 360ms 動畫。
-      */
       opacity:0;
       backdrop-filter:blur(0);
       -webkit-backdrop-filter:blur(0);
@@ -1256,11 +1155,6 @@
       }
     }
 
-
-
-    /* ---------------------------------------------------------------
-       複製資料子頁
-       --------------------------------------------------------------- */
     .copy-view[hidden]{
       display:none!important;
     }
@@ -1343,10 +1237,6 @@
       color:#fff;
     }
 
-    /* ---------------------------------------------------------------
-       手機照片：左右滑切換、點擊全螢幕
-       電腦版不啟用這些事件。
-       --------------------------------------------------------------- */
     .device-mobile .hero{
       touch-action:pan-y;
     }
@@ -1383,10 +1273,6 @@
       overflow:hidden;
     }
 
-    /*
-      進入瀏覽器 Fullscreen API 後同樣強制填滿整個裝置畫面。
-      不支援 Fullscreen API 的手機則使用 fixed inset:0 fallback。
-    */
     .photo-viewer:fullscreen,
     .photo-viewer:-webkit-full-screen{
       width:100vw;
@@ -1411,10 +1297,6 @@
       width:100%;
       height:100%;
 
-      /*
-        桌布模式：直接填滿整個螢幕。
-        超出的部分裁切，而不是留下黑邊。
-      */
       object-fit:cover;
       object-position:center;
 
@@ -1437,9 +1319,6 @@
     .viewer-photo.is-outgoing{
       opacity:0;
 
-      /*
-        舊照片只做 opacity 淡出，transform 必須完全凍結。
-      */
       transition-property:opacity;
     }
 
@@ -1554,11 +1433,6 @@
         transform .42s cubic-bezier(.22,.78,.24,1);
     }
 
-    /*
-      類似 YouTube：
-      進入全螢幕 2 秒後，上方張數/關閉與下方控制列一起淡出。
-      照片本身的 5 秒計時、慢放大、漸變完全不受影響。
-    */
     .photo-viewer.controls-hidden{
       cursor:none;
     }
@@ -1575,9 +1449,6 @@
       pointer-events:none;
     }
 
-    /*
-      手機沒有滑鼠游標，避免 cursor 規則造成任何差異。
-    */
     .device-mobile .photo-viewer.controls-hidden{
       cursor:auto;
     }
@@ -1660,9 +1531,6 @@
       transform:scale(1);
     }
 
-    /*
-      5 秒播放進度環：手機、桌面、全螢幕三顆播放鍵共用。
-    */
     .playback-toggle,
     .desktop-playback-toggle,
     .viewer-playback-toggle{
@@ -1745,12 +1613,6 @@
       }
     }
 
-
-
-    /* ---------------------------------------------------------------
-       手機照片操作提示 / 播放控制
-       預設右下角；若與 bio 區域太近，JS 自動切到右上角。
-       --------------------------------------------------------------- */
     .hero-mobile-help{
       display:none;
     }
@@ -1759,11 +1621,6 @@
       position:absolute;
       z-index:6;
 
-      /*
-        初始先不顯示。JS 會在首屏繪製前同步量測 bio / 提示框，
-        決定右下或右上，再加 help-position-ready 顯示。
-        這樣不會看到「先右下、再閃到右上」。
-      */
       visibility:hidden;
       opacity:0;
       right:clamp(12px,3.4vw,19px);
@@ -1783,9 +1640,6 @@
 
       pointer-events:auto;
 
-      /*
-        位置切換時不要突然跳，讓右下 -> 右上更自然。
-      */
       transition:
         opacity .18s ease;
     }
@@ -1795,10 +1649,6 @@
       opacity:1;
     }
 
-    /*
-      初次定位完成後，如果之後因旋轉/字型變化需要換位置，
-      才允許做平滑的位置動畫。
-    */
     .device-mobile .hero-mobile-help.help-position-ready.help-position-animate{
       transition:
         top .28s cubic-bezier(.22,.78,.24,1),
@@ -1807,15 +1657,8 @@
         opacity .18s ease;
     }
 
-    /*
-      當 JS 判定右下角會碰到 bio，就切換到右上角。
-      top 值避開卡片圓角與照片邊界。
-    */
     .device-mobile .hero-mobile-help.help-top-right{
-      /*
-        右上角模式：上方與右側使用完全相同的安全間距，
-        並比上一版更靠近角落。
-      */
+
       --help-corner-gap:clamp(12px,3vw,17px);
       top:var(--help-corner-gap);
       right:var(--help-corner-gap);
@@ -1909,10 +1752,6 @@
       transform:scale(1);
     }
 
-    /*
-      橫向手機：預設直接放右上角，因為照片底部通常更容易
-      被姓名/介紹文字佔用。
-    */
     @media (orientation:landscape){
       .device-mobile .hero-mobile-help{
         --help-corner-gap:clamp(10px,2.4vh,15px);
@@ -1944,11 +1783,6 @@
       }
     }
 
-
-
-    /* ---------------------------------------------------------------
-       電腦版照片控制：放在照片右下角、右側 IG 面板的左邊
-       --------------------------------------------------------------- */
     .desktop-photo-controls{
       display:none;
     }
@@ -2068,8 +1902,6 @@
       }
     }
 
-
-    /* 開場動畫 */
     @keyframes cardEnter{
       from{
         opacity:0;
@@ -2157,7 +1989,6 @@
         filter:none!important;
       }
 
-      /* 照片仍保留柔和淡入；縮放由 JavaScript 控制。 */
       .hero-photo{
         transition:opacity 2.05s ease!important;
       }
@@ -2584,12 +2415,6 @@
       let viewerOpen = false;
       let viewerActiveLayer = 0;
 
-      /*
-        viewerActiveLayer：目前畫面上已經成為主圖的 layer。
-        viewerZoomLayerIndex：目前應該接收 Ken Burns 放大 transform 的 layer。
-        兩者在 Crossfade 載入期間刻意分開，避免新照片的 scale
-        寫到舊照片上，造成「舊照片突然縮小」。
-      */
       let viewerZoomLayerIndex = 0;
       let viewerSyncGeneration = 0;
 
@@ -2597,17 +2422,9 @@
       let currentPhotoPath = "";
       let playbackPaused = false;
 
-      /*
-        全螢幕控制介面：
-        顯示後 2 秒沒有操作就自動淡出。
-      */
       let viewerUiHideTimer = 0;
       const VIEWER_UI_HIDE_DELAY = 2000;
 
-      /*
-        當前照片真正「播放中」的累積時間。
-        暫停、進全螢幕都不增加；恢復後從原本秒數繼續。
-      */
       let currentPhotoElapsedMs = 0;
 
       const clearViewerUiTimer = () => {
@@ -2692,11 +2509,6 @@
       const syncViewerScale = (scale) => {
         if (!viewerOpen) return;
 
-        /*
-          Crossfade 期間不要碰舊的可見 layer。
-          新照片開始播放後，scale 只寫到新的 viewer layer，
-          舊照片保持最後一個 transform 直到 opacity 淡完。
-        */
         const layer =
           viewerLayers[
             viewerZoomLayerIndex
@@ -2736,11 +2548,6 @@
           return;
         }
 
-        /*
-          先暫時取消位置動畫，做同步 layout measurement。
-          首次執行會在 parser script 執行期間完成，正常情況下
-          瀏覽器還沒畫出第一幀，所以使用者不會看到位置跳動。
-        */
         heroHelp.classList.remove(
           "help-position-animate"
         );
@@ -2752,17 +2559,11 @@
             "help-top-right"
           );
         } else {
-          /*
-            直向先用右下角計算實際矩形。
-          */
+    
           heroHelp.classList.remove(
             "help-top-right"
           );
 
-          /*
-            getBoundingClientRect() 會強制完成當下 layout，
-            因此不需要先 requestAnimationFrame 再量測。
-          */
           const helpRect =
             heroHelp.getBoundingClientRect();
 
@@ -2787,9 +2588,6 @@
           }
         }
 
-        /*
-          位置決定後才顯示。
-        */
         heroHelp.classList.add(
           "help-position-ready"
         );
@@ -2798,10 +2596,7 @@
           helpPositionInitialized &&
           animate
         ) {
-          /*
-            下一 frame 才重新開位置 transition，
-            避免本次 class 切換本身被動畫到。
-          */
+
           requestAnimationFrame(() => {
             heroHelp.classList.add(
               "help-position-animate"
@@ -2880,9 +2675,6 @@
         } catch (_) {}
       };
 
-      /*
-        一般播放：依檔名自然順序前進。
-      */
       const nextSequential = (items, mode) => {
         if (!Array.isArray(items) || items.length === 0) return "";
 
@@ -2893,11 +2685,6 @@
         return picked;
       };
 
-      /*
-        向右滑 = 上一張。
-        目前儲存的是「下一張的位置」，所以回上一張要往回兩格：
-        next=i+1 -> previous=i-1。
-      */
       const previousSequential = (items, mode) => {
         if (!Array.isArray(items) || items.length === 0) return "";
 
@@ -3016,10 +2803,6 @@
           return;
         }
 
-        /*
-          如果已經播滿 5 秒，不再重新啟動一個新的 5 秒週期。
-          這就是避免反覆暫停/播放讓照片無限放大的關鍵。
-        */
         if (
           currentPhotoElapsedMs >=
           ZOOM_DURATION
@@ -3085,10 +2868,6 @@
 
           lastAt = now;
 
-          /*
-            累加的是「真正播放中的時間」，不是每次 resume
-            都從 0 開始的局部 elapsed。
-          */
           currentPhotoElapsedMs =
             Math.min(
               ZOOM_DURATION,
@@ -3250,10 +3029,6 @@
                 : 0
             ];
 
-          /*
-            Instant sync（剛進全螢幕）：
-            顯示層和 zoom 目標就是同一層。
-          */
           viewerZoomLayerIndex =
             viewerActiveLayer;
 
@@ -3306,11 +3081,6 @@
           return;
         }
 
-        /*
-          先凍結舊照片的最後縮放值。
-          之後不論新照片 decode 花多久，
-          舊照片都不會再收到任何 scale 更新。
-        */
         const frozenOld =
           getComputedStyle(
             oldLayer
@@ -3329,13 +3099,6 @@
           "is-outgoing"
         );
 
-        /*
-          關鍵修正：
-          在 await decode 之前就把 zoom 目標切到 newIndex。
-          因此主輪播一開始跑新照片的 5 秒 zoom 時，
-          syncViewerScale() 只會改這張尚未淡入的新照片，
-          絕對不會把舊照片縮回 BASE_SCALE。
-        */
         viewerZoomLayerIndex =
           newIndex;
 
@@ -3353,10 +3116,6 @@
           }
         } catch (_) {}
 
-        /*
-          如果使用者在 decode 期間又切了一張，
-          舊 async 結果直接丟掉。
-        */
         if (
           !viewerOpen ||
           myGeneration !==
@@ -3365,10 +3124,6 @@
           return;
         }
 
-        /*
-          新照片此時可能已經在 hidden 狀態下累積了一點 zoom。
-          不重設 transform，直接保留目前值開始 Crossfade。
-        */
         newLayer.classList.add(
           "is-active"
         );
@@ -3503,9 +3258,6 @@
           newLayer.classList.add("is-active");
           activeLayer = newIndex;
 
-          /*
-            真正換到新照片才開始新的 5 秒總播放時間。
-          */
           currentPhotoPath = path;
           currentPhotoElapsedMs = 0;
           updateProgressUI();
@@ -3639,10 +3391,6 @@
           "false"
         );
 
-        /*
-          每次進入全螢幕都先顯示控制，
-          然後從此刻開始算 2 秒。
-        */
         viewer.classList.remove(
           "controls-hidden"
         );
@@ -3655,11 +3403,6 @@
         updateViewerCount();
         updateProgressUI();
 
-        /*
-          使用者點擊進入時，支援 Fullscreen API 的瀏覽器
-          直接進真正裝置全螢幕；iPhone Safari 等不支援時，
-          固定式 overlay 仍會完整覆蓋可視畫面。
-        */
         try {
           if (
             !document.fullscreenElement &&
@@ -3691,9 +3434,6 @@
 
         viewerOpen = false;
 
-        /*
-          讓所有尚未完成的 viewer decode / crossfade 立即失效。
-        */
         viewerSyncGeneration += 1;
 
         viewer.classList.remove(
@@ -3729,12 +3469,6 @@
           false;
       };
 
-      /*
-        手機主照片：
-        - 左滑：下一張
-        - 右滑：上一張
-        - 輕點：全螢幕
-      */
       const bindSwipeTarget = (
         target,
         {
@@ -4037,10 +3771,7 @@
           layers[activeLayer];
 
         if (playbackPaused) {
-          /*
-            只停止動畫，不重設 currentPhotoElapsedMs。
-            例如已播放 3.2 秒，暫停後仍記住 3.2 秒。
-          */
+   
           clearSlideshow();
           stopZoom();
           return;
@@ -4053,11 +3784,7 @@
           ) &&
           !document.hidden
         ) {
-          /*
-            繼續使用當前 scale + 當前累積秒數。
-            如果只剩 1.8 秒，就只會再播 1.8 秒，
-            絕對不會重新得到一個完整 5 秒。
-          */
+
           startRateBasedZoom(
             active,
             true
@@ -4160,10 +3887,6 @@
         }
       );
 
-      /*
-        點任何全螢幕控制項，都視為使用者仍在操作：
-        先顯示控制，再重新計時 2 秒。
-      */
       viewer?.addEventListener(
         "pointerdown",
         (event) => {
@@ -4188,10 +3911,6 @@
         }
       );
 
-      /*
-        桌面版：滑鼠只要移回全螢幕畫面，就像 YouTube 一樣
-        立即把控制列叫回來，停止移動 2 秒後再淡出。
-      */
       viewer?.addEventListener(
         "mousemove",
         () => {
@@ -4201,10 +3920,6 @@
         {passive:true}
       );
 
-      /*
-        手機版：控制列已隱藏時，輕點桌布一次只負責叫回 UI，
-        不會觸發其他操作；顯示後再過 2 秒自動淡出。
-      */
       viewerStage?.addEventListener(
         "click",
         (event) => {
@@ -4233,10 +3948,7 @@
             event.stopPropagation();
             showViewerUi();
           } else {
-            /*
-              UI 本來就顯示時，點一下桌布不做動作，
-              只重置 2 秒倒數，避免誤操作。
-            */
+
             scheduleViewerUiHide();
           }
         }
@@ -4565,11 +4277,6 @@
         openCopy
       );
 
-      /*
-        加入聯絡人只存在手機版。
-        不使用 download=，讓瀏覽器直接把 contact.vcf
-        交給 iOS / Android 的 vCard 處理流程。
-      */
       addContactBtn?.addEventListener(
         "click",
         () => {
@@ -4608,11 +4315,6 @@
         }
       );
 
-      /*
-        複製資料：
-        Instagram 顯示與複製帳號名稱，而不是整條網址。
-        LINE ID 使用 CARD_LINE_ID Secret。
-      */
       const instagramHandleFromUrl = (
         value
       ) => {
@@ -4709,13 +4411,6 @@
           );
         });
 
-      /*
-        App 智慧開啟（只套用手機版）：
-        不用已被 LINE 官方淘汰的 line:// custom scheme。
-        改為在同一分頁導向官方 HTTPS / Universal Link；
-        已安裝 App 時交給手機 OS 開 App，沒有 App 就留在網頁。
-        電腦版完全不掛這段事件。
-      */
       if (isMobile) {
         document
           .querySelectorAll(
