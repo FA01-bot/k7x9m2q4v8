@@ -1436,6 +1436,11 @@
 
     .viewer-photo.is-outgoing{
       opacity:0;
+
+      /*
+        舊照片只做 opacity 淡出，transform 必須完全凍結。
+      */
+      transition-property:opacity;
     }
 
     .photo-viewer-topbar{
@@ -2578,6 +2583,16 @@
       let zoomGeneration = 0;
       let viewerOpen = false;
       let viewerActiveLayer = 0;
+
+      /*
+        viewerActiveLayer：目前畫面上已經成為主圖的 layer。
+        viewerZoomLayerIndex：目前應該接收 Ken Burns 放大 transform 的 layer。
+        兩者在 Crossfade 載入期間刻意分開，避免新照片的 scale
+        寫到舊照片上，造成「舊照片突然縮小」。
+      */
+      let viewerZoomLayerIndex = 0;
+      let viewerSyncGeneration = 0;
+
       let nativeViewerFullscreen = false;
       let currentPhotoPath = "";
       let playbackPaused = false;
@@ -2677,8 +2692,15 @@
       const syncViewerScale = (scale) => {
         if (!viewerOpen) return;
 
+        /*
+          Crossfade 期間不要碰舊的可見 layer。
+          新照片開始播放後，scale 只寫到新的 viewer layer，
+          舊照片保持最後一個 transform 直到 opacity 淡完。
+        */
         const layer =
-          viewerLayers[viewerActiveLayer];
+          viewerLayers[
+            viewerZoomLayerIndex
+          ];
 
         if (!layer) return;
 
@@ -3206,6 +3228,9 @@
 
         if (!src) return;
 
+        const myGeneration =
+          ++viewerSyncGeneration;
+
         const mainLayer =
           layers[activeLayer];
 
@@ -3214,7 +3239,9 @@
 
         if (instant) {
           const active =
-            viewerLayers[viewerActiveLayer];
+            viewerLayers[
+              viewerActiveLayer
+            ];
 
           const other =
             viewerLayers[
@@ -3223,13 +3250,23 @@
                 : 0
             ];
 
+          /*
+            Instant sync（剛進全螢幕）：
+            顯示層和 zoom 目標就是同一層。
+          */
+          viewerZoomLayerIndex =
+            viewerActiveLayer;
+
           if (active) {
             active.src = src;
+
             active.style.transform =
               `scale(${currentScale})`;
+
             active.classList.add(
               "is-active"
             );
+
             active.classList.remove(
               "is-outgoing"
             );
@@ -3240,7 +3277,13 @@
               "is-active",
               "is-outgoing"
             );
-            other.removeAttribute("src");
+
+            other.style.transform =
+              "";
+
+            other.removeAttribute(
+              "src"
+            );
           }
 
           updateViewerCount();
@@ -3263,10 +3306,38 @@
           return;
         }
 
+        /*
+          先凍結舊照片的最後縮放值。
+          之後不論新照片 decode 花多久，
+          舊照片都不會再收到任何 scale 更新。
+        */
+        const frozenOld =
+          getComputedStyle(
+            oldLayer
+          ).transform;
+
+        if (
+          frozenOld &&
+          frozenOld !== "none"
+        ) {
+          oldLayer.style.transform =
+            frozenOld;
+        }
+
         newLayer.classList.remove(
           "is-active",
           "is-outgoing"
         );
+
+        /*
+          關鍵修正：
+          在 await decode 之前就把 zoom 目標切到 newIndex。
+          因此主輪播一開始跑新照片的 5 秒 zoom 時，
+          syncViewerScale() 只會改這張尚未淡入的新照片，
+          絕對不會把舊照片縮回 BASE_SCALE。
+        */
+        viewerZoomLayerIndex =
+          newIndex;
 
         newLayer.style.transform =
           `scale(${BASE_SCALE})`;
@@ -3282,21 +3353,22 @@
           }
         } catch (_) {}
 
-        if (!viewerOpen) return;
-
-        const frozenOld =
-          getComputedStyle(
-            oldLayer
-          ).transform;
-
+        /*
+          如果使用者在 decode 期間又切了一張，
+          舊 async 結果直接丟掉。
+        */
         if (
-          frozenOld &&
-          frozenOld !== "none"
+          !viewerOpen ||
+          myGeneration !==
+            viewerSyncGeneration
         ) {
-          oldLayer.style.transform =
-            frozenOld;
+          return;
         }
 
+        /*
+          新照片此時可能已經在 hidden 狀態下累積了一點 zoom。
+          不重設 transform，直接保留目前值開始 Crossfade。
+        */
         newLayer.classList.add(
           "is-active"
         );
@@ -3304,6 +3376,7 @@
         oldLayer.classList.remove(
           "is-active"
         );
+
         oldLayer.classList.add(
           "is-outgoing"
         );
@@ -3315,6 +3388,8 @@
 
         window.setTimeout(() => {
           if (
+            myGeneration ===
+              viewerSyncGeneration &&
             viewerActiveLayer !==
               oldIndex
           ) {
@@ -3548,6 +3623,9 @@
 
         viewerOpen = true;
 
+        viewerZoomLayerIndex =
+          viewerActiveLayer;
+
         document.body.classList.add(
           "viewer-open"
         );
@@ -3612,6 +3690,11 @@
         }
 
         viewerOpen = false;
+
+        /*
+          讓所有尚未完成的 viewer decode / crossfade 立即失效。
+        */
+        viewerSyncGeneration += 1;
 
         viewer.classList.remove(
           "open"
